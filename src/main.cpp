@@ -145,8 +145,10 @@ int main(int argc, char** argv) {
 					if (game->over)
 						quit = 1;
 					
-					if (!game->endGameAsk)
+					if (!game->endGameAsk) {
 						game->endGameAsk = true;
+
+					}
 				}
 
 				if (event.key.keysym.sym == SDLK_y)

@@ -4,29 +4,22 @@ Scene::Scene(SDL_Renderer* renderer)
 {
 	error = false;
 
-	SDL_Surface* carsSprite = SDL_LoadBMP("src/bmp/cars.bmp");
-	if (carsSprite == NULL)
-	{
-		printf("SDL_LoadBMP(cs8x8.bmp) error: %s\n", SDL_GetError());
-		error = true;
-	}
-	carsTexture = SDL_CreateTextureFromSurface(renderer, carsSprite);
+	carsTexture = loadTexture(renderer, "src/bmp/cars.bmp");
+	baseTexture = loadTexture(renderer, "src/bmp/base.bmp");
+	woodTexture = loadTexture(renderer, "src/bmp/wood.bmp");
+	turtleTexture = loadTexture(renderer, "src/bmp/turtle.bmp");
+}
 
-	SDL_Surface* baseSprite = SDL_LoadBMP("src/bmp/base.bmp");
-	if (baseSprite == NULL)
+SDL_Texture* Scene::loadTexture(SDL_Renderer* renderer, char* path)
+{
+	SDL_Surface* surface = SDL_LoadBMP(path);
+	if (surface == NULL)
 	{
-		printf("SDL_LoadBMP(cs8x8.bmp) error: %s\n", SDL_GetError());
+		printf("SDL_LoadBMP(%s) error: %s\n",path, SDL_GetError());
 		error = true;
+		return false;
 	}
-	baseTexture = SDL_CreateTextureFromSurface(renderer, baseSprite);
-
-	SDL_Surface* woodSprite = SDL_LoadBMP("src/bmp/wood.bmp");
-	if (woodSprite == NULL)
-	{
-		printf("SDL_LoadBMP(cs8x8.bmp) error: %s\n", SDL_GetError());
-		error = true;
-	}
-	woodTexture = SDL_CreateTextureFromSurface(renderer, woodSprite);
+	return SDL_CreateTextureFromSurface(renderer, surface);
 }
 
 void Scene::createScene()
@@ -47,7 +40,17 @@ void Scene::createScene()
 		woods[i] = new Wood * [10];
 		for (int j = 0; j < 10; j++)
 		{
-			woods[i][j] = new Wood(woodTexture, 200 * j, 412 - 54 * i, i%3, 100/(i+1));
+			woods[i][j] = new Wood(woodTexture, 200 * j, 250 - 54 * i, i%3, 100/(i+1));
+		}
+	}
+
+	turtles = new Turtle **[TURTLES_ROWS];
+	for (int i = 0; i < TURTLES_ROWS; i++)
+	{
+		turtles[i] = new Turtle * [5];
+		for (int j = 0; j < 5; j++)
+		{
+			turtles[i][j] = new Turtle(turtleTexture, 500 * j, 412 - 54 * i, 5, 50 / (i + 1));
 		}
 	}
 
@@ -81,6 +84,16 @@ void Scene::drawScene(Draw* draw, int fps, bool paused)
 			if(!paused)
 				woods[i][j]->move(fps);
 			woods[i][j]->show(draw);
+		}
+	}
+
+	for (int i = 0; i < TURTLES_ROWS; i++)
+	{
+		for (int j = 0; j < 5; j++)
+		{
+			if (!paused)
+				turtles[i][j]->move(fps);
+			turtles[i][j]->show(draw);
 		}
 	}
 
@@ -133,6 +146,21 @@ int Scene::detectWoodCollision(int frogX, int frogY, int frogWidth, int frogHeig
 	return 0;
 }
 
+int Scene::detectTurtleCollision(int frogX, int frogY, int frogWidth, int frogHeight)
+{
+	for (int i = 0; i < TURTLES_ROWS; i++)
+	{
+		for (int j = 0; j < 5; j++)
+		{
+			if (turtles[i][j]->collision(frogX, frogY, frogWidth, frogHeight))
+			{
+				return turtles[i][j]->velocity;
+			}
+		}
+	}
+	return 0;
+}
+
 bool Scene::detectWaterCollision(int frogX, int frogY, int frogWidth, int frogHeight)
 {
 	if (frogY + frogHeight / 2 > WATER_Y_START && frogY + frogHeight / 2 < WATER_Y_END)
@@ -142,6 +170,16 @@ bool Scene::detectWaterCollision(int frogX, int frogY, int frogWidth, int frogHe
 			for (int j = 0; j < 10; j++)
 			{
 				if (woods[i][j]->centerCollision(frogX, frogY, frogWidth, frogHeight))
+				{
+					return false;
+				}
+			}
+		}
+		for (int i = 0; i < TURTLES_ROWS; i++)
+		{
+			for (int j = 0; j < 5; j++)
+			{
+				if (turtles[i][j]->centerCollision(frogX, frogY, frogWidth, frogHeight))
 				{
 					return false;
 				}

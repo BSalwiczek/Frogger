@@ -23,7 +23,6 @@ class Frog: public Entity
 
 	double step, current_steps;
 
-	int last_posX, last_posY;
 public:
 	SDL_Texture* frogTexture;
 	bool jumping;

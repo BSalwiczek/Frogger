@@ -3,9 +3,9 @@
 #include "Entity.h"
 #include "Draw.h"
 
-#define BEGIN_WIDTH 20
-#define MIDDLE_WIDTH 51
-#define END_WIDTH 72
+#define WOOD_BEGIN_WIDTH 20
+#define WOOD_MIDDLE_WIDTH 51
+#define WOOD_END_WIDTH 72
 
 class Wood: public Entity
 {

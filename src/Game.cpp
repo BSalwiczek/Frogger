@@ -47,9 +47,22 @@ void Game::play()
 			frog->goToStart();
 		}
 
+		frog->external_velocity = 0;
 		int velocity = scene->detectWoodCollision(this->frog->posX, this->frog->posY, this->frog->width, this->frog->height);
-		frog->external_velocity = velocity;
-		frog->external_velocity_direction = right;
+		if (velocity > 0)
+		{
+			frog->external_velocity = velocity;
+			frog->external_velocity_direction = right;
+		}
+
+		velocity = scene->detectTurtleCollision(this->frog->posX, this->frog->posY, this->frog->width, this->frog->height);
+		if (velocity > 0)
+		{
+			frog->external_velocity = velocity;
+			frog->external_velocity_direction = left;
+		}
+
+		
 
 		if (scene->detectWaterCollision(this->frog->posX, this->frog->posY, this->frog->width, this->frog->height) && !frog->jumping)
 		{

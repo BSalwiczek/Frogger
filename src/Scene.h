@@ -7,9 +7,11 @@
 #include "Base.h"
 #include "Wood.h"
 #include "Frog.h"
+#include "Turtle.h"
 
 #define CAR_ROWS 5
-#define WOOD_ROWS 5
+#define WOOD_ROWS 2
+#define TURTLES_ROWS 3
 #define BASES_COUNT 5
 
 #define WATER_Y_START 186
@@ -22,11 +24,15 @@ class Scene
 {
 public:
 	bool error;
+
 	SDL_Texture* carsTexture;
 	SDL_Texture* baseTexture;
 	SDL_Texture* woodTexture;
+	SDL_Texture* turtleTexture;
+
 	Car*** cars;
 	Wood*** woods;
+	Turtle*** turtles;
 	Base** bases;
 
 	Scene(SDL_Renderer* renderer);
@@ -38,10 +44,11 @@ public:
 	void showOver(Draw* draw);
 	void endGameAsk(Draw* draw);
 
-
+	SDL_Texture* loadTexture(SDL_Renderer* renderer, char* path);
 	bool detectEnemyCollisions(int frogX, int frogY, int frogWidth, int frogHeight); 
 	bool detectBaseCollisions(int frogX, int frogY, int frogWidth, int frogHeight);
 	bool detectWaterCollision(int frogX, int frogY, int frogWidth, int frogHeight);
 	int detectWoodCollision(int frogX, int frogY, int frogWidth, int frogHeight);
+	int detectTurtleCollision(int frogX, int frogY, int frogWidth, int frogHeight);
 };
 

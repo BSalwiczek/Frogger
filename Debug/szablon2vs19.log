@@ -1,10 +1,8 @@
-﻿  Frog.cpp
-C:\Users\barto\Desktop\Frogger\src\Frog.cpp(122,17): warning C4244: '-=': conversion from 'double' to 'int', possible loss of data
-C:\Users\barto\Desktop\Frogger\src\Frog.cpp(125,17): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
-C:\Users\barto\Desktop\Frogger\src\Frog.cpp(128,17): warning C4244: '-=': conversion from 'double' to 'int', possible loss of data
-C:\Users\barto\Desktop\Frogger\src\Frog.cpp(131,17): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
-C:\Users\barto\Desktop\Frogger\src\Frog.cpp(158,17): warning C4244: '-=': conversion from 'double' to 'int', possible loss of data
-C:\Users\barto\Desktop\Frogger\src\Frog.cpp(161,17): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
-C:\Users\barto\Desktop\Frogger\src\Frog.cpp(164,17): warning C4244: '-=': conversion from 'double' to 'int', possible loss of data
-C:\Users\barto\Desktop\Frogger\src\Frog.cpp(167,17): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
+﻿  main.cpp
+C:\Users\barto\Desktop\Frogger\src\main.cpp(105,1): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(1774): message : see declaration of 'sprintf'
+C:\Users\barto\Desktop\Frogger\src\main.cpp(110,1): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(1774): message : see declaration of 'sprintf'
+C:\Users\barto\Desktop\Frogger\src\main.cpp(9,26): warning C4101: 'distance': unreferenced local variable
+C:\Users\barto\Desktop\Frogger\src\main.cpp(12,15): warning C4101: 'texts': unreferenced local variable
   szablon2vs19.vcxproj -> C:\Users\barto\Desktop\Frogger\Debug\szablon2vs19.exe

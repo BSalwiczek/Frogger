@@ -14,8 +14,6 @@ Frog::Frog(SDL_Renderer* renderer)
 		error = true;
 	}
 	goToStart();
-	last_posX = SCREEN_WIDTH / 2;
-	last_posY = SCREEN_HEIGHT - 45;
 
 	frogTexture = SDL_CreateTextureFromSurface(renderer, frogSprite);
 
@@ -59,7 +57,7 @@ void Frog::showFrog(Draw* draw)
 
 	if(direction == left)
 		draw->drawPartOfTexture(draw->renderer, frogTexture, posX, posY, SrcR, 90, SDL_FLIP_VERTICAL);
-	else if (direction == right)
+	if (direction == right)
 		draw->drawPartOfTexture(draw->renderer, frogTexture, posX, posY, SrcR, 90, SDL_FLIP_NONE);
 	else if (direction == down)
 		draw->drawPartOfTexture(draw->renderer, frogTexture, posX, posY, SrcR, 180, SDL_FLIP_NONE);
@@ -80,16 +78,11 @@ void Frog::setAnimation()
 		last_animation_time = SDL_GetTicks();
 	}
 
-	if ((last_posX != posX || last_posY != posY) && animation_state == a_stand)
-	{
-		last_posX = posX;
-		last_posY = posY;
-	}
 }
 
 void Frog::jump(SDL_Keycode key)
 {
-	if (!jumping && SDL_GetTicks() - last_time_jumped > 300)
+	if (!jumping && SDL_GetTicks() - last_time_jumped > 200)
 	{
 		jumping = true;
 		animation_state = a_jump;
@@ -155,16 +148,16 @@ void Frog::move(int fps)
 			switch (external_velocity_direction)
 			{
 			case left:
-				posX -= step;
+				posX -= 1;
 				break;
 			case right:
-				posX += step;
+				posX += 1;
 				break;
 			case up:
-				posY -= step;
+				posY -= 1;
 				break;
 			case down:
-				posY += step;
+				posY += 1;
 				break;
 			default:
 				break;
@@ -179,6 +172,7 @@ void Frog::die()
 	if (this->lives > 0)
 	{
 		lives--;
+		external_velocity = 0;
 		goToStart();
 	}
 }

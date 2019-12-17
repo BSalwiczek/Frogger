@@ -27,6 +27,7 @@
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Scene.cpp" />
+    <ClCompile Include="src\Turtle.cpp" />
     <ClCompile Include="src\Wood.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -48,6 +49,7 @@
     <ClInclude Include="src\Frog.h" />
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\Scene.h" />
+    <ClInclude Include="src\Turtle.h" />
     <ClInclude Include="src\Wood.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

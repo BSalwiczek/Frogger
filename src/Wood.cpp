@@ -19,7 +19,7 @@ void Wood::show(Draw* draw)
 	SDL_Rect beginningRect;
 	beginningRect.x = 0;
 	beginningRect.y = 0;
-	beginningRect.w = BEGIN_WIDTH;
+	beginningRect.w = WOOD_BEGIN_WIDTH;
 	beginningRect.h = this->height;
 
 	draw->drawPartOfTexture(draw->renderer, this->texture, this->posX, this->posY, beginningRect, 0, SDL_FLIP_NONE);
@@ -28,22 +28,22 @@ void Wood::show(Draw* draw)
 	for (int i = 0; i < size; i++)
 	{
 		SDL_Rect middleRect;
-		middleRect.x = BEGIN_WIDTH + 1;
+		middleRect.x = WOOD_BEGIN_WIDTH + 1;
 		middleRect.y = 0;
-		middleRect.w = MIDDLE_WIDTH;
+		middleRect.w = WOOD_MIDDLE_WIDTH;
 		middleRect.h = this->height;
-		draw->drawPartOfTexture(draw->renderer, this->texture, this->posX + BEGIN_WIDTH + MIDDLE_WIDTH*i, this->posY, middleRect, 0, SDL_FLIP_NONE);
+		draw->drawPartOfTexture(draw->renderer, this->texture, this->posX + WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH*i, this->posY, middleRect, 0, SDL_FLIP_NONE);
 	}
 
 
 	SDL_Rect endRect;
-	endRect.x = BEGIN_WIDTH + MIDDLE_WIDTH + 2;
+	endRect.x = WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH + 2;
 	endRect.y = 0;
-	endRect.w = END_WIDTH;
+	endRect.w = WOOD_END_WIDTH;
 	endRect.h = this->height;
-	draw->drawPartOfTexture(draw->renderer, this->texture, this->posX + BEGIN_WIDTH + MIDDLE_WIDTH*size, this->posY, endRect, 0, SDL_FLIP_NONE);
+	draw->drawPartOfTexture(draw->renderer, this->texture, this->posX + WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH*size, this->posY, endRect, 0, SDL_FLIP_NONE);
 
-	this->width = BEGIN_WIDTH + MIDDLE_WIDTH * size + END_WIDTH;
+	this->width = WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH * size + WOOD_END_WIDTH;
 
 }
 

@@ -5,7 +5,7 @@ Frog::Frog(SDL_Renderer* renderer)
 	error = false;
 	jump_distance = 53;
 	jump_velocity = 130;
-	direction = up;
+	direction = none;
 
 	SDL_Surface* frogSprite = SDL_LoadBMP("src/bmp/frog.bmp");
 	if (frogSprite == NULL)
@@ -22,6 +22,7 @@ Frog::Frog(SDL_Renderer* renderer)
 	last_time_jumped = 0;
 	jumping = false;
 	moveable = true;
+	first_move = true;
 	lives = 3;
 	this->external_velocity = 0;
 	this->external_velocity_direction = right;
@@ -61,7 +62,7 @@ void Frog::showFrog(Draw* draw)
 		draw->drawPartOfTexture(draw->renderer, frogTexture, posX, posY, SrcR, 90, SDL_FLIP_NONE);
 	else if (direction == down)
 		draw->drawPartOfTexture(draw->renderer, frogTexture, posX, posY, SrcR, 180, SDL_FLIP_NONE);
-	else if (direction == up)
+	else if (direction == up || direction == none)
 		draw->drawPartOfTexture(draw->renderer, frogTexture, posX, posY, SrcR, 0, SDL_FLIP_NONE);
 }
 
@@ -82,19 +83,28 @@ void Frog::setAnimation()
 
 void Frog::jump(SDL_Keycode key)
 {
-	if (!jumping && SDL_GetTicks() - last_time_jumped > 200)
+	if (!jumping && SDL_GetTicks() - last_time_jumped > 200 && moveable)
 	{
-		jumping = true;
-		animation_state = a_jump;
+		if (direction != none)
+		{
+			if (first_move)
+				first_move = false;
+
+			jumping = true;
+			animation_state = a_jump; 
+		}
+
 		
 		if (key == SDLK_UP)
 			direction = up;
-		if (key == SDLK_DOWN)
+		else if (key == SDLK_DOWN)
 			direction = down;
-		if (key == SDLK_LEFT)
+		else if (key == SDLK_LEFT)
 			direction = left;
-		if (key == SDLK_RIGHT)
+		else if (key == SDLK_RIGHT)
 			direction = right;
+		else
+			direction = none;
 	}
 
 }
@@ -179,8 +189,10 @@ void Frog::die()
 
 void Frog::goToStart()
 {
+	first_move = true;
 	posX = START_X;
 	posY = START_Y;
+	lowestY = posY;
 	jumping = false;
 	current_steps = 0;
 	last_time_jumped = SDL_GetTicks();

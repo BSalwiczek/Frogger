@@ -8,6 +8,14 @@ Scene::Scene(SDL_Renderer* renderer)
 	baseTexture = loadTexture(renderer, "src/bmp/base.bmp");
 	woodTexture = loadTexture(renderer, "src/bmp/wood.bmp");
 	turtleTexture = loadTexture(renderer, "src/bmp/turtle.bmp");
+
+	timeBar = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32,
+		0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+	SDL_FillRect(timeBar, NULL, SDL_MapRGBA(timeBar->format, 0, 0, 0, 0));
+
+	timeBarTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING,
+		SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
 SDL_Texture* Scene::loadTexture(SDL_Renderer* renderer, char* path)
@@ -209,28 +217,111 @@ void Scene::showPaused(Draw* draw)
 	char text[128];
 	sprintf(text, "PAUSED [p]");
 
-	draw->DrawString(draw->screen, draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h/2, text, draw->charset2, 32);
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h/2, text, draw->charset2, 32);
 }
 
 void Scene::showOver(Draw* draw)
 {
 	char text[128];
 	sprintf(text, "GAME OVER");
-	draw->DrawString(draw->screen, draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 - 16, text, draw->charset2, 32);
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 - 16, text, draw->charset2, 32);
 	sprintf(text, "Q-END GAME");
-	draw->DrawString(draw->screen, draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 + 20, text, draw->charset2, 32);
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 + 20, text, draw->charset2, 32);
 	sprintf(text, "R-PLAY AGAIN");
-	draw->DrawString(draw->screen, draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 + 56, text, draw->charset2, 32);
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 + 56, text, draw->charset2, 32);
 }
 
 void Scene::endGameAsk(Draw* draw)
 {
 	char text[128];
 	sprintf(text, "QUIT GAME? Y/N");
-	draw->DrawString(draw->screen, draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 - 16, text, draw->charset2, 32);
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 - 16, text, draw->charset2, 32);
 }
 
 
+void Scene::showWin(Draw* draw, int scores, char name[])
+{
+	draw->DrawFullScreenTexture();
+	 
+	char text[128];
+	sprintf(text, "You won!");
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 - 100, text, draw->charset2, 32);
+	sprintf(text, "Score: %i", scores);
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 - 48, text, draw->charset2, 32);
+	sprintf(text, "Enter your name: ");
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 + 16, text, draw->charset2, 32);
+	if (name[0] != '\0')
+	{
+		sprintf(text, "%s", name);
+		draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 + 64, text, draw->charset2, 32);
+	}
+	
+}
+
+void Scene::showTimeBar(Draw* draw, double len)
+{
+	SDL_FillRect(timeBar, NULL, SDL_MapRGBA(timeBar->format, 0, 0, 0, 0));
+
+	int length = (int)(250 * len);
+
+	if(len > 0.2)
+		draw->DrawRectangle(timeBar, SCREEN_WIDTH - 400 + 250 - length, SCREEN_HEIGHT - 60 , length, 25, draw->black, draw->green);
+	else
+		draw->DrawRectangle(timeBar, SCREEN_WIDTH - 400 + 250 - length, SCREEN_HEIGHT - 60, length, 25, draw->black, draw->red);
+
+	SDL_UpdateTexture(timeBarTexture, NULL, timeBar->pixels, timeBar->pitch);
+	SDL_RenderCopy(draw->renderer, timeBarTexture, NULL, NULL);
+
+	char text[128];
+	sprintf(text, "TIME");
+	draw->DrawString(draw->screen->w - 140, draw->screen->h - 63 , text, draw->charset2, 32);
+}
+
+void Scene::showScores(Draw* draw, int scores)
+{
+	char text[128];
+	sprintf(text, "SCORES: %i",scores);
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, 40, text, draw->charset2, 32);
+}
+
+void Scene::showMenu(Draw* draw, int option)
+{
+	draw->DrawFullScreenTexture();
+
+	char text[128];
+	sprintf(text, "-- Menu --");
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 - 100, text, draw->charset2, 32);
+	if(option == 0)
+		sprintf(text, ">Play ");
+	else
+		sprintf(text, "Play ");
+	draw->DrawString(draw->screen->w / 2 - 11 * 32 / 2, draw->screen->h / 2 - 32, text, draw->charset2, 32);
+	if(option == 1)
+		sprintf(text, ">High scores");
+	else
+		sprintf(text, "High scores");
+		draw->DrawString(draw->screen->w / 2 - 11 * 32 / 2, draw->screen->h / 2 + 16, text, draw->charset2, 32);
+
+}
+
+void Scene::showHighScores(Draw* draw, char names[10][255], int highestScores[10], short highestCount)
+{
+	draw->DrawFullScreenTexture();
+
+	char text[128];
+	sprintf(text, "return [r]");
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, 25, text, draw->charset2, 32);
+	sprintf(text, "-- Highest Scores --");
+	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, 100, text, draw->charset2, 32);
+
+	printf("%i\n", highestCount);
+	for (int i = 0; i < 10; i++)
+	{
+		sprintf(text, "%s %i", names[i], highestScores[i]);
+		draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, 160 + i*55, text, draw->charset2, 32);
+	}
+
+}
 
 Scene::~Scene()
 {

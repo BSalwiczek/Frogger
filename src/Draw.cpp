@@ -28,6 +28,18 @@ Draw::Draw(SDL_Renderer* renderer)
 		this->background = SDL_CreateTextureFromSurface(renderer,background_s);
 	}
 	this->renderer = renderer;
+
+	screen = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32,
+		0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+
+	scrtex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING,
+		SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	black = SDL_MapRGB(screen->format, 0x00, 0x00, 0x00);
+	green = SDL_MapRGB(screen->format, 0x00, 0xFF, 0x00);
+	red = SDL_MapRGB(screen->format, 0xFF, 0x00, 0x00);
+	//int niebieski = SDL_MapRGB(screen->format, 0x11, 0x11, 0xCC);
 	//SDL_SetColorKey(charset, true, 0x000000);
 }
 
@@ -80,7 +92,7 @@ bool Draw::drawPartOfTexture(SDL_Renderer* renderer, SDL_Texture* texture, int X
 
 // draw a text txt on surface screen, starting from the point (x, y)
 // charset is a 128x128 bitmap containing character images
-void Draw::DrawString(SDL_Surface* screen, int x, int y, const char* text,
+void Draw::DrawString(int x, int y, const char* text,
 	SDL_Texture* charset, int size) {
 	int px, py, c;
 	SDL_Rect s, d;
@@ -144,3 +156,9 @@ void Draw::DrawRectangle(SDL_Surface* screen, int x, int y, int l, int k,
 		DrawLine(screen, x + 1, i, l - 2, 1, 0, fillColor);
 };
 
+
+void Draw::DrawFullScreenTexture()
+{
+	SDL_UpdateTexture(scrtex, NULL, screen->pixels, screen->pitch);
+	SDL_RenderCopy(renderer, scrtex, NULL, NULL);
+}

@@ -7,7 +7,8 @@ typedef enum {
 	left,
 	right,
 	up,
-	down
+	down,
+	none
 } direction_t;
 
 class Entity

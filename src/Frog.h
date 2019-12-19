@@ -19,7 +19,6 @@ class Frog: public Entity
 	int last_animation_time;
 
 	int last_time_jumped;
-	bool moveable;
 
 	double step, current_steps;
 
@@ -27,6 +26,11 @@ public:
 	SDL_Texture* frogTexture;
 	bool jumping;
 	bool error;
+	bool moveable;
+	bool first_move;
+
+	int lowestY;
+
 	int jump_distance;
 	
 	int jump_velocity;

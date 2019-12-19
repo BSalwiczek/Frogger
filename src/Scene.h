@@ -30,6 +30,9 @@ public:
 	SDL_Texture* woodTexture;
 	SDL_Texture* turtleTexture;
 
+	SDL_Surface* timeBar;
+	SDL_Texture* timeBarTexture;
+
 	Car*** cars;
 	Wood*** woods;
 	Turtle*** turtles;
@@ -42,7 +45,12 @@ public:
 	void showLives(Draw* draw, Frog* frog);
 	void showPaused(Draw* draw); 
 	void showOver(Draw* draw);
+	void showWin(Draw* draw, int scores, char name[]);
+	void showScores(Draw* draw, int scores);
+	void showTimeBar(Draw* draw, double len);
 	void endGameAsk(Draw* draw);
+	void showMenu(Draw* draw, int option);
+	void showHighScores(Draw* draw, char names[10][255], int highestScores[10], short highestCount);
 
 	SDL_Texture* loadTexture(SDL_Renderer* renderer, char* path);
 	bool detectEnemyCollisions(int frogX, int frogY, int frogWidth, int frogHeight); 

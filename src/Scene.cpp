@@ -3,11 +3,17 @@
 Scene::Scene(SDL_Renderer* renderer)
 {
 	error = false;
+	woods_amount = 0;
+	cars_amount = 0;
+	turtles_amount = 0;
+	time_for_level = 100.0;
 
 	carsTexture = loadTexture(renderer, "src/bmp/cars.bmp");
 	baseTexture = loadTexture(renderer, "src/bmp/base.bmp");
 	woodTexture = loadTexture(renderer, "src/bmp/wood.bmp");
 	turtleTexture = loadTexture(renderer, "src/bmp/turtle.bmp");
+	littleFrogTexture = loadTexture(renderer, "src/bmp/littlefrog.bmp");
+	frogTexture = loadTexture(renderer, "src/bmp/frog.bmp");
 
 	timeBar = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32,
 		0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
@@ -30,37 +36,96 @@ SDL_Texture* Scene::loadTexture(SDL_Renderer* renderer, char* path)
 	return SDL_CreateTextureFromSurface(renderer, surface);
 }
 
-void Scene::createScene()
+void Scene::createScene(int level)
 {
-	cars = new Car**[CAR_ROWS];
-	for (int i = 0; i < CAR_ROWS; i++)
+	char text[10];
+	sprintf(text, "etap%i.txt",level);
+	FILE* file = fopen(text,"r");
+	
+	char buffer[100];
+	char name;
+	int amount, time = 0;
+
+	fgets(buffer, sizeof buffer / sizeof buffer[0], file);
+	if (sscanf(buffer, "Time: %i", &time) > 0)
 	{
-		cars[i] = new Car*[10];
-		for (int j = 0; j < 10; j++)
+		time_for_level = time;
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		fgets(buffer, sizeof buffer / sizeof buffer[0], file);
+		if (sscanf(buffer, "%c %i", &name, &amount) > 0)
 		{
-			cars[i][j] = new Car(carsTexture, i, 400*j, 730 - 55 * i, i%2==0? right: left);
+			printf("%c %i \n", name, amount);
+			if (name == 'W') {
+				woods_amount = amount;
+				woods = new Wood * [amount];
+			}
+			if (name == 'T') {
+				turtles_amount = amount;
+				turtles = new Turtle * [amount];
+			}
+			if (name == 'C') {
+				cars_amount = amount;
+				cars = new Car * [amount];
+			}
+		}
+	}
+	
+
+	int rows[10];
+	int woods_index = 0;
+	int cars_index = 0;
+	int turtles_index = 0;
+
+	for(int i=0;i<10;i++)
+	{
+		int y;
+		fgets(buffer, sizeof buffer / sizeof buffer[0], file);
+		if (sscanf(buffer, "%i %i", &rows[i], &y) > 0)
+		{
+			printf("%i %i \n", rows[i], y);
+			while (feof(file) == 0)
+			{
+				int x = 0, velocity = 0, size = 0, car_type = 0, direction = 0;
+				char name = ' ';
+				fgets(buffer, sizeof buffer / sizeof buffer[0], file);
+				if (sscanf(buffer, "%c %i %i %i", &name, &x, &velocity, &size) > 0 && (name == 'W' || name == 'T'))
+				{
+					printf("%c %i %i %i \n", name, x, velocity, size);
+					if (name == 'W')
+					{
+						woods[woods_index] = new Wood(woodTexture, x, y, size, velocity);
+						woods_index++;
+					}
+					else if (name == 'T')
+					{
+						turtles[turtles_index] = new Turtle(turtleTexture, x, y, size, velocity);
+						turtles_index++;
+					}
+					
+				}
+				else if (sscanf(buffer, "%c %i %i %i %i", &name, &x, &car_type, &velocity, &direction) > 0 && name == 'C')
+				{
+					printf("%c %i %i %i %i \n", name, x, car_type, velocity, direction);
+
+					cars[cars_index] = new Car(carsTexture,car_type, x, y, velocity, direction == 0 ? left : right);
+					cars_index++;
+				}
+
+				if (velocity == 0)
+					break;
+			}
 		}
 	}
 
-	woods = new Wood **[WOOD_ROWS];
-	for (int i = 0; i < WOOD_ROWS; i++)
-	{
-		woods[i] = new Wood * [10];
-		for (int j = 0; j < 10; j++)
-		{
-			woods[i][j] = new Wood(woodTexture, 200 * j, 250 - 54 * i, i%3, 100/(i+1));
-		}
-	}
+	fclose(file);
 
-	turtles = new Turtle **[TURTLES_ROWS];
-	for (int i = 0; i < TURTLES_ROWS; i++)
-	{
-		turtles[i] = new Turtle * [5];
-		for (int j = 0; j < 5; j++)
-		{
-			turtles[i][j] = new Turtle(turtleTexture, 500 * j, 412 - 54 * i, 5, 50 / (i + 1));
-		}
-	}
+	printf("Cars index %i \n", cars_index);
+	printf("Wood index %i \n", woods_index);
+	printf("Turtles index %i \n", turtles_index);
+
 
 	bases = new Base*[BASES_COUNT];
 	bases[0] = new Base(baseTexture, 19, 135);
@@ -69,40 +134,62 @@ void Scene::createScene()
 	bases[3] = new Base(baseTexture, 494, 135);
 	bases[4] = new Base(baseTexture, 652, 135);
 
-	//car = new Car(carsTexture, 4,100,500, right);
+	//choose entity to put on little frog
+	int littleFrogXPos = 0;
+	for (int i = 0; i < woods_amount; i++)
+	{
+		if (woods[i]->posY == 358 && rand() % 2 > 0) {
+			littleFrogXPos = woods[i]->posX + 50;
+			break;
+		}
+	}
+	littleFrog = new LittleFrog(littleFrogTexture, littleFrogXPos, 358);
+}
 
+void Scene::resetScene()
+{
+	for (int i = 0; i < cars_amount; i++)
+		delete cars[i];
+
+	for (int i = 0; i < woods_amount; i++)
+		delete woods[i];
+
+	for (int i = 0; i < turtles_amount; i++)
+		delete turtles[i];
+
+	for (int i = 0; i < BASES_COUNT; i++)
+		delete bases[i];
+
+	delete[] cars;
+	delete[] turtles;
+	delete[] bases;
+
+	woods_amount = 0;
+	cars_amount = 0;
+	turtles_amount = 0;
 }
 
 void Scene::drawScene(Draw* draw, int fps, bool paused)
 {
-	for (int i = 0; i < CAR_ROWS; i++)
+	for (int i = 0; i < cars_amount; i++)
 	{
-		for (int j = 0; j < 10; j++)
-		{
-			if(!paused)
-				cars[i][j]->move(fps);
-			cars[i][j]->show(draw);
-		}
+		if(!paused)
+			cars[i]->move(fps);
+		cars[i]->show(draw);
 	}
 
-	for (int i = 0; i < WOOD_ROWS; i++)
+	for (int i = 0; i < woods_amount; i++)
 	{
-		for (int j = 0; j < 10; j++)
-		{
-			if(!paused)
-				woods[i][j]->move(fps);
-			woods[i][j]->show(draw);
-		}
+		if(!paused)
+			woods[i]->move(fps);
+		woods[i]->show(draw);
 	}
 
-	for (int i = 0; i < TURTLES_ROWS; i++)
+	for (int i = 0; i < turtles_amount; i++)
 	{
-		for (int j = 0; j < 5; j++)
-		{
-			if (!paused)
-				turtles[i][j]->move(fps);
-			turtles[i][j]->show(draw);
-		}
+		if (!paused)
+			turtles[i]->move(fps);
+		turtles[i]->show(draw);
 	}
 
 	for (int i = 0; i < BASES_COUNT; i++)
@@ -113,13 +200,10 @@ void Scene::drawScene(Draw* draw, int fps, bool paused)
 
 bool Scene::detectEnemyCollisions(int frogX, int frogY, int frogWidth, int frogHeight)
 {
-	for (int i = 0; i < CAR_ROWS; i++)
+	for (int i = 0; i < cars_amount; i++)
 	{
-		for (int j = 0; j < 10; j++)
-		{
-			if (cars[i][j]->collision(frogX, frogY, frogWidth, frogHeight))
-				return true;
-		}
+		if (cars[i]->collision(frogX, frogY, frogWidth, frogHeight))
+			return true;
 	}
 
 	return false;
@@ -140,14 +224,11 @@ bool Scene::detectBaseCollisions(int frogX, int frogY, int frogWidth, int frogHe
 
 int Scene::detectWoodCollision(int frogX, int frogY, int frogWidth, int frogHeight)
 {
-	for (int i = 0; i < WOOD_ROWS; i++)
+	for (int i = 0; i < woods_amount; i++)
 	{
-		for (int j = 0; j < 10; j++)
+		if (woods[i]->collision(frogX, frogY, frogWidth, frogHeight))
 		{
-			if (woods[i][j]->collision(frogX, frogY, frogWidth, frogHeight))
-			{
-				return woods[i][j]->velocity;
-			}
+			return woods[i]->velocity;
 		}
 	}
 
@@ -156,15 +237,10 @@ int Scene::detectWoodCollision(int frogX, int frogY, int frogWidth, int frogHeig
 
 int Scene::detectTurtleCollision(int frogX, int frogY, int frogWidth, int frogHeight)
 {
-	for (int i = 0; i < TURTLES_ROWS; i++)
+	for (int i = 0; i < turtles_amount; i++)
 	{
-		for (int j = 0; j < 5; j++)
-		{
-			if (turtles[i][j]->collision(frogX, frogY, frogWidth, frogHeight))
-			{
-				return turtles[i][j]->velocity;
-			}
-		}
+		if (turtles[i]->collision(frogX, frogY, frogWidth, frogHeight))
+			return turtles[i]->velocity;
 	}
 	return 0;
 }
@@ -173,24 +249,16 @@ bool Scene::detectWaterCollision(int frogX, int frogY, int frogWidth, int frogHe
 {
 	if (frogY + frogHeight / 2 > WATER_Y_START && frogY + frogHeight / 2 < WATER_Y_END)
 	{
-		for (int i = 0; i < WOOD_ROWS; i++)
+		for (int i = 0; i < woods_amount; i++)
 		{
-			for (int j = 0; j < 10; j++)
-			{
-				if (woods[i][j]->centerCollision(frogX, frogY, frogWidth, frogHeight))
-				{
-					return false;
-				}
-			}
+			if (woods[i]->centerCollision(frogX, frogY, frogWidth, frogHeight))
+				return false;
 		}
-		for (int i = 0; i < TURTLES_ROWS; i++)
+		for (int i = 0; i < turtles_amount; i++)
 		{
-			for (int j = 0; j < 5; j++)
+			if (turtles[i]->centerCollision(frogX, frogY, frogWidth, frogHeight))
 			{
-				if (turtles[i][j]->centerCollision(frogX, frogY, frogWidth, frogHeight))
-				{
-					return false;
-				}
+				return false;
 			}
 		}
 		return true;
@@ -264,7 +332,7 @@ void Scene::showTimeBar(Draw* draw, double len)
 
 	int length = (int)(250 * len);
 
-	if(len > 0.2)
+	if(len > 0.25)
 		draw->DrawRectangle(timeBar, SCREEN_WIDTH - 400 + 250 - length, SCREEN_HEIGHT - 60 , length, 25, draw->black, draw->green);
 	else
 		draw->DrawRectangle(timeBar, SCREEN_WIDTH - 400 + 250 - length, SCREEN_HEIGHT - 60, length, 25, draw->black, draw->red);
@@ -314,24 +382,31 @@ void Scene::showHighScores(Draw* draw, char names[10][255], int highestScores[10
 	sprintf(text, "-- Highest Scores --");
 	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, 100, text, draw->charset2, 32);
 
-	printf("%i\n", highestCount);
 	for (int i = 0; i < 10; i++)
 	{
 		sprintf(text, "%s %i", names[i], highestScores[i]);
-		draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, 160 + i*55, text, draw->charset2, 32);
+		draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, 180 + i*55, text, draw->charset2, 32);
 	}
 
 }
 
+void Scene::show200(Draw* draw,int x, int y)
+{
+	char text[4];
+	sprintf(text, "200");
+	draw->DrawString(x, y, text, draw->charset2, 32);
+
+}
+
+
 Scene::~Scene()
 {
-	//for (int i = 0; i < CAR_ROWS - 1; i++)
-	//{
-	//	for (int j = 0; j < 10; j++)
-	//	{
-	//		delete cars[i][j];
-	//	}
-	//}
-	//delete[] cars;
-	//delete[] bases;
+	SDL_DestroyTexture(carsTexture);
+	SDL_DestroyTexture(baseTexture);
+	SDL_DestroyTexture(woodTexture);
+	SDL_DestroyTexture(turtleTexture);
+	SDL_FreeSurface(timeBar);
+	SDL_DestroyTexture(timeBarTexture);
+
+	resetScene();
 }

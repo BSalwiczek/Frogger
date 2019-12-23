@@ -25,6 +25,7 @@
     <ClCompile Include="src\Entity.cpp" />
     <ClCompile Include="src\Frog.cpp" />
     <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\LittleFrog.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\Turtle.cpp" />
@@ -42,12 +43,14 @@
     <Image Include="src\bmp\wood.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dirent\dirent.h" />
     <ClInclude Include="src\Base.h" />
     <ClInclude Include="src\Car.h" />
     <ClInclude Include="src\Draw.h" />
     <ClInclude Include="src\Entity.h" />
     <ClInclude Include="src\Frog.h" />
     <ClInclude Include="src\Game.h" />
+    <ClInclude Include="src\LittleFrog.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\Turtle.h" />
     <ClInclude Include="src\Wood.h" />

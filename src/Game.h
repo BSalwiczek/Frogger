@@ -1,5 +1,7 @@
 #pragma once
+#include <stdio.h>
 #include <stdlib.h>
+#include "../dirent/dirent.h"
 #include "Draw.h"
 #include "Frog.h"
 #include "Scene.h"
@@ -9,6 +11,7 @@ class Game
 	int levels;
 	int current_level;
 	int scores;
+	int x200, y200;
 public:
 	char name[255];
 	short nameCurrentIndex;
@@ -23,6 +26,8 @@ public:
 	bool getName;
 	bool menu;
 	bool highscores;
+	bool savedToFile;
+	bool show200;
 
 	char names[10][255];
 	int highestScores[10];
@@ -41,6 +46,8 @@ public:
 	void writeName(char *input);
 	void backspaceName();
 	void saveScore();
+	void setExternalVelocity(Frog* frog);
+	int getLevelsCount();
 
 	bool isEmpty(FILE* file);
 };

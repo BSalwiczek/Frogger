@@ -2,37 +2,47 @@
 
 Game::Game(SDL_Renderer* renderer)
 {
-	this->worldTime = 0;
-	this->startedTime = 0;
-	this->endedTime = 0;
-	this->fps = 0;
-	this->bases = 0;
-	this->draw = new Draw(renderer);
+	worldTime = 0;
+	startedTime = 0;
+	endedTime = 0;
+	fps = 0;
+	bases = 0;
+	show200 = false;
+	x200 = 0;
+	y200 = 0;
+	draw = new Draw(renderer);
 	error = false;
-	if (this->draw->error == true)
-		this->error = true;
+	if (draw->error == true)
+		error = true;
 
-	this->frog = new Frog(renderer);
-	if (this->frog->error == true)
-		this->error = true;
+	scene = new Scene(renderer);
+	if (scene->error == true)
+		error = true;
 
-	this->scene = new Scene(renderer);
-	if (this->scene->error == true)
-		this->error = true;
-	this->scene->createScene();
-	this->paused = false;
-	this->over = false;
-	this->endGameAsk = false;
+	frog = new Frog(scene->frogTexture);
+	if (frog->error == true)
+		error = true;
 
-	levels = 1;
-	scores = 100;
+
+	levels = getLevelsCount();
 	current_level = 1;
-	getName = false;
-	nameCurrentIndex = 0;
-	name[0] = '\0';
+	printf("%i \n", levels);
+
+	scene->createScene(current_level);
+
 	menu = true;
+	paused = false;
+	over = false;
+	endGameAsk = false;
+	getName = false;
+	savedToFile = false;
 	win = false;
 	highscores = false;
+
+	scores = 300;
+	nameCurrentIndex = 0;
+	name[0] = '\0';
+	
 	menuOption = 0;
 
 	//get highest scores
@@ -44,6 +54,26 @@ Game::Game(SDL_Renderer* renderer)
 	{
 		highestCount++;
 	}
+	fclose(file);
+}
+
+int Game::getLevelsCount() 
+{
+	DIR* d;
+	struct dirent* dir;
+	int files = 0;
+	d = opendir(".");
+	if (d) {
+		while ((dir = readdir(d)) != NULL) {
+			if (!strncmp("etap", dir->d_name,4))
+			{
+				printf("%s \n", dir->d_name);
+				files++;
+			}
+		}
+		closedir(d);
+	}
+	return files;
 }
 
 Game::~Game()
@@ -74,7 +104,7 @@ void Game::backspaceName()
 
 void Game::play()
 {
-	scene->showTimeBar(draw, (50.0-(worldTime-startedTime))/50.0);
+	scene->showTimeBar(draw, (scene->time_for_level-(worldTime-startedTime))/ scene->time_for_level);
 
 	SDL_Rect rect;
 	rect.x = 0;
@@ -89,10 +119,12 @@ void Game::play()
 	scene->showScores(draw, scores);
 	scene->showLives(draw, frog);
 	frog->showFrog(draw);
+	if(scene->littleFrog != NULL)
+		scene->littleFrog->showFrog(draw);
 
 	if (!paused && !over)
 	{
-		if (worldTime - startedTime > 50.0 && !frog->first_move)
+		if (worldTime - startedTime > scene->time_for_level && !frog->first_move)
 		{
 			endedTime = worldTime;
 			frog->die();
@@ -106,29 +138,43 @@ void Game::play()
 		{
 			endedTime = worldTime;
 			bases++;
+			if(scene->littleFrog != NULL)
+			{
+				if (scene->littleFrog->follow) {
+					scores += 200;
+					printf("200 za zabke\n");
+				}
+				delete scene->littleFrog;
+			}
+			show200 = true;
+			x200 = frog->posX - 10;
+			y200 = frog->posY - 40;
 			scores += 50 + 10 * (int)(worldTime - startedTime);
 			frog->goToStart();
 		}
 
-		frog->external_velocity = 0;
-		int velocity = scene->detectWoodCollision(this->frog->posX, this->frog->posY, this->frog->width, this->frog->height);
-		if (velocity > 0)
-		{
-			frog->external_velocity = velocity;
-			frog->external_velocity_direction = right;
+		if (worldTime - endedTime < 5 && show200) {
+			scene->show200(draw, x200, y200);
+		}
+		else {
+			show200 = false;
 		}
 
-		velocity = scene->detectTurtleCollision(this->frog->posX, this->frog->posY, this->frog->width, this->frog->height);
-		if (velocity > 0)
-		{
-			frog->external_velocity = velocity;
-			frog->external_velocity_direction = left;
-		}
+
+		setExternalVelocity(frog);
+		setExternalVelocity(scene->littleFrog);
 
 		if (scene->detectWaterCollision(this->frog->posX, this->frog->posY, this->frog->width, this->frog->height) && !frog->jumping)
 		{
 			endedTime = worldTime;
 			frog->die();
+		}
+
+		if (scene->littleFrog->collision(frog->posX, frog->posY, frog->width, frog->height))
+		{
+			scene->littleFrog->follow = true;
+			scene->littleFrog->posX = frog->posX;
+			scene->littleFrog->posY = frog->posY + 7;
 		}
 
 		if (frog->posX < 0 || frog->posX > SCREEN_WIDTH - frog->width || frog->posY > SCREEN_HEIGHT - 100 || frog->posY < 150)
@@ -145,7 +191,7 @@ void Game::play()
 
 		if (bases == BASES_COUNT)
 		{
-			if (current_level == levels)
+			if (current_level > levels)
 			{
 				getName = true;
 				win = true;
@@ -153,16 +199,24 @@ void Game::play()
 				scene->showWin(draw, scores, name);
 			}
 			else {
-				levels++;
+				bases = 0;
+				frog->lives = MAX_LIVES;
+				current_level++;
+				scene->resetScene();
+				scene->createScene(current_level);
 			}
 		}
 
 		if (frog->first_move == true)
 			startedTime = worldTime;
 
-
-
 		frog->move(fps);
+		if (scene->littleFrog != NULL)
+		{
+			scene->littleFrog->move(fps);
+			scene->littleFrog->checkIfTooFar();
+		}
+		
 	}else if(!over){
 		scene->showPaused(draw);
 	}
@@ -179,9 +233,27 @@ void Game::play()
 	
 }
 
+void Game::setExternalVelocity(Frog* frog)
+{
+	frog->external_velocity = 0;
+	int velocity = scene->detectWoodCollision(frog->posX, frog->posY, frog->width, frog->height);
+	if (velocity > 0)
+	{
+		frog->external_velocity = velocity;
+		frog->external_velocity_direction = right;
+	}
+
+	velocity = scene->detectTurtleCollision(frog->posX, frog->posY, frog->width, frog->height);
+	if (velocity > 0)
+	{
+		frog->external_velocity = velocity;
+		frog->external_velocity_direction = left;
+	}
+}
+
 void Game::saveScore()
 {
-	if (nameCurrentIndex > 2)
+	if (nameCurrentIndex > 2 && !savedToFile)
 	{
 		FILE* file = fopen("scores.txt","a+");
 		if (file == NULL)
@@ -190,7 +262,6 @@ void Game::saveScore()
 		if (isEmpty(file))
 		{
 			fprintf(file, "%s , %i\n", name, scores);
-			fprintf(file, "%s , %i\n",name, scores-10);
 		}
 		else
 		{
@@ -200,7 +271,7 @@ void Game::saveScore()
 			char someoneName[255];
 			while (fscanf(file, "%s , %d", someoneName, &currentScore) > 0)
 			{
-				if (currentScore < worstScore) {
+				if (currentScore <= worstScore) {
 					worstScore = currentScore;
 					lineWithWorstScore = currentLine;
 				}
@@ -213,9 +284,8 @@ void Game::saveScore()
 			{
 				fprintf(file, "%s , %i\n", name, scores);
 				fclose(file);
-
 			}
-			else {
+			else if(worstScore<=scores) {
 				currentLine = 0;
 				char ch;
 				rewind(file);
@@ -244,11 +314,14 @@ void Game::saveScore()
 
 				fclose(file2);
 				fclose(file);
+
 				remove("scores.txt");
 				rename("temp.txt", "scores.txt");
 			}
 		}
-
+		fclose(file);
+		savedToFile = true;
+		over = true;
 	}
 }
 

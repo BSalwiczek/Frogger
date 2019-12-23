@@ -1,8 +1,9 @@
 #include "Car.h"
 
 
-Car::Car(SDL_Texture* carsTexture, int car_type, int posX, int posY, direction_t direction)
+Car::Car(SDL_Texture* carsTexture, int car_type, int posX, int posY, int velocity, direction_t direction)
 {
+	error = false;
 	this->carsTexture = carsTexture;
 	this->posX = posX;
 	this->posY = posY;
@@ -41,7 +42,7 @@ Car::Car(SDL_Texture* carsTexture, int car_type, int posX, int posY, direction_t
 	this->height = carRect.h;
 
 	this->direction = direction;
-	this->velocity = 40;
+	this->velocity = velocity;
 }
 
 void Car::show(Draw* draw)

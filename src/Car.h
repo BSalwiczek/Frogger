@@ -13,7 +13,7 @@ class Car: public Entity
 public:
 	bool error;
 
-	Car(SDL_Texture* carsTexture, int car_type, int posX, int posY, direction_t direction);
+	Car(SDL_Texture* carsTexture, int car_type, int posX, int posY, int velocity, direction_t direction);
 	void show(Draw* draw);
 	void move(int fps);
 

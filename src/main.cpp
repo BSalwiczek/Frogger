@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include "Game.h"
 
 int main(int argc, char** argv) {
@@ -12,6 +13,9 @@ int main(int argc, char** argv) {
 	SDL_Texture* scrtex;
 	SDL_Window* window;
 	SDL_Renderer* renderer;
+
+	srand(time(NULL));
+
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		printf("SDL_Init error: %s\n", SDL_GetError());
@@ -34,10 +38,6 @@ int main(int argc, char** argv) {
 
 
 	SDL_ShowCursor(SDL_DISABLE);
-
-	//init sdl_image
-	//if (!(IMG_Init(IMG_INIT_PNG)))
-	//	printf("Png files cannot be loaded!");
 
 	Game* game = new Game(renderer);
 
@@ -107,6 +107,12 @@ int main(int argc, char** argv) {
 		
 		
 		SDL_RenderPresent(renderer);
+
+		if (game->over && game->savedToFile)
+		{
+			delete game;
+			game = new Game(renderer);
+		}
 		
 
 		// handling of events (if there were any)
@@ -117,8 +123,14 @@ int main(int argc, char** argv) {
 
 				if (event.key.keysym.sym == SDLK_p && !game->win)
 					game->paused = !game->paused;
-				else if(!game->paused)
+				else if (!game->paused) {
 					game->frog->jump(event.key.keysym.sym);
+
+					if(game->scene->littleFrog != NULL)
+						if(game->scene->littleFrog->follow)
+							game->scene->littleFrog->jump(event.key.keysym.sym);
+
+				}
 
 				if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_DOWN)
 				{

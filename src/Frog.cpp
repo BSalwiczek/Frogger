@@ -1,21 +1,13 @@
 #include "Frog.h"
 
-Frog::Frog(SDL_Renderer* renderer)
+Frog::Frog(SDL_Texture* texture)
 {
 	error = false;
 	jump_distance = 53;
 	jump_velocity = 130;
 	direction = none;
 
-	SDL_Surface* frogSprite = SDL_LoadBMP("src/bmp/frog.bmp");
-	if (frogSprite == NULL)
-	{
-		printf("SDL_LoadBMP(cs8x8.bmp) error: %s\n", SDL_GetError());
-		error = true;
-	}
-	goToStart();
-
-	frogTexture = SDL_CreateTextureFromSurface(renderer, frogSprite);
+	frogTexture = texture;
 
 	last_animation_time = SDL_GetTicks();
 	animation_state = a_stand; 
@@ -23,7 +15,7 @@ Frog::Frog(SDL_Renderer* renderer)
 	jumping = false;
 	moveable = true;
 	first_move = true;
-	lives = 3;
+	lives = MAX_LIVES;
 	this->external_velocity = 0;
 	this->external_velocity_direction = right;
 	current_steps = 0;

@@ -5,6 +5,7 @@
 
 #define START_X SCREEN_WIDTH / 2 - 20
 #define START_Y SCREEN_HEIGHT - 139
+#define MAX_LIVES 5
 
 typedef enum {
 	a_stand,
@@ -41,7 +42,7 @@ public:
 	int posX, posY, width, height;
 	short lives;
 
-	Frog(SDL_Renderer* renderer);
+	Frog(SDL_Texture* texture);
 	void showFrog(Draw* draw);
 	void setAnimation();
 	void move(int fps);

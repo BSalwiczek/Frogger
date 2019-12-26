@@ -7,6 +7,7 @@ Turtle::Turtle(SDL_Texture* texture, int posX, int posY, int size, int velocity)
 	this->posY = posY;
 	this->size = size;
 	this->velocity = velocity;
+	diving = false;
 	step = 0;
 	width = TURTLE_WIDTH*size;
 	height = TURTLE_HEIGHT;
@@ -37,9 +38,16 @@ void Turtle::show(Draw* draw)
 		case swim_end:
 			Rect.x = 2*(TURTLE_WIDTH + 1);
 			break;
-
+		case diving_start:
+			Rect.x = 3 * (TURTLE_WIDTH + 1);
+			break;
+		case diving_end:
+			Rect.x = 3 * (TURTLE_WIDTH + 1);
+			break;
+		case diving_middle:
+			Rect.x = 4 * (TURTLE_WIDTH + 1);
+			break;
 		}
-
 		draw->drawPartOfTexture(draw->renderer, texture, posX + TURTLE_WIDTH * i, posY, Rect, 0, SDL_FLIP_NONE);
 	}
 }
@@ -66,18 +74,46 @@ void Turtle::setAnimation()
 {
 	if (SDL_GetTicks() - last_animation_time > 20000/velocity)
 	{
-		switch(animation_state)
+		if(!diving) 
 		{
-		case swim_start:
-			animation_state = swim_middle;
-			break;
-		case swim_middle:
-			animation_state = swim_end;
-			break;
-		case swim_end:
-			animation_state = swim_start;
-			break;
+			switch (animation_state)
+			{
+			case swim_start:
+				animation_state = swim_middle;
+				break;
+			case swim_middle:
+				animation_state = swim_end;
+				break;
+			case swim_end:
+				animation_state = swim_start;
+				break;
+			}
+			last_animation_time = SDL_GetTicks();
 		}
-		last_animation_time = SDL_GetTicks();
 	}
+
+	if (SDL_GetTicks() - last_animation_time > 50000 / velocity)
+	{
+		if (diving)
+		{
+			switch (animation_state)
+			{
+			case diving_start:
+				animation_state = diving_middle;
+				break;
+			case diving_middle:
+				animation_state = diving_end;
+				break;
+			case diving_end:
+				animation_state = swim_start;
+				diving = false;
+				break;
+			default:
+				animation_state = diving_start;
+				break;
+			}
+			last_animation_time = SDL_GetTicks();
+		}
+	}
+	
 }

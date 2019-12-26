@@ -3,13 +3,17 @@
 Game::Game(SDL_Renderer* renderer)
 {
 	worldTime = 0;
+	bonusTime = 0;
 	startedTime = 0;
 	endedTime = 0;
 	fps = 0;
 	bases = 0;
-	show200 = false;
-	x200 = 0;
-	y200 = 0;
+	showBonus = false;
+	bonusX = 0;
+	bonusY = 0;
+	bonus = 0;
+	beeTime = 0;
+	divingTime = 0;
 	draw = new Draw(renderer);
 	error = false;
 	if (draw->error == true)
@@ -104,83 +108,33 @@ void Game::backspaceName()
 
 void Game::play()
 {
-	scene->showTimeBar(draw, (scene->time_for_level-(worldTime-startedTime))/ scene->time_for_level);
-
-	SDL_Rect rect;
-	rect.x = 0;
-	rect.y = 0;
-	rect.w = SCREEN_WIDTH;
-	rect.h = SCREEN_HEIGHT - 200;
-
-	draw->drawPartOfTexture(draw->renderer, draw->background, 0, 100, rect, 0, SDL_FLIP_NONE);
-
-	scene->drawScene(draw, fps, paused);
-
-	scene->showScores(draw, scores);
-	scene->showLives(draw, frog);
-	frog->showFrog(draw);
-	if(scene->littleFrog != NULL)
-		scene->littleFrog->showFrog(draw);
+	showAll();
 
 	if (!paused && !over)
 	{
 		if (worldTime - startedTime > scene->time_for_level && !frog->first_move)
-		{
-			endedTime = worldTime;
-			frog->die();
-		}
+			handleFrogDeath();
+
 		if (scene->detectEnemyCollisions(frog->posX, frog->posY, frog->width, frog->height))
-		{
-			endedTime = worldTime;
-			frog->die();
-		}
-		if (scene->detectBaseCollisions(frog->posX, frog->posY, frog->width, frog->height))
-		{
-			endedTime = worldTime;
-			bases++;
-			if(scene->littleFrog != NULL)
-			{
-				if (scene->littleFrog->follow) {
-					scores += 200;
-					printf("200 za zabke\n");
-				}
-				delete scene->littleFrog;
-			}
-			show200 = true;
-			x200 = frog->posX - 10;
-			y200 = frog->posY - 40;
-			scores += 50 + 10 * (int)(worldTime - startedTime);
-			frog->goToStart();
-		}
-
-		if (worldTime - endedTime < 5 && show200) {
-			scene->show200(draw, x200, y200);
-		}
-		else {
-			show200 = false;
-		}
-
-
-		setExternalVelocity(frog);
-		setExternalVelocity(scene->littleFrog);
+			handleFrogDeath();
 
 		if (scene->detectWaterCollision(this->frog->posX, this->frog->posY, this->frog->width, this->frog->height) && !frog->jumping)
-		{
-			endedTime = worldTime;
-			frog->die();
-		}
-
-		if (scene->littleFrog->collision(frog->posX, frog->posY, frog->width, frog->height))
-		{
-			scene->littleFrog->follow = true;
-			scene->littleFrog->posX = frog->posX;
-			scene->littleFrog->posY = frog->posY + 7;
-		}
+			handleFrogDeath();
 
 		if (frog->posX < 0 || frog->posX > SCREEN_WIDTH - frog->width || frog->posY > SCREEN_HEIGHT - 100 || frog->posY < 150)
+			handleFrogDeath();
+
+		handleBonusesAndBases();
+		setExternalVelocity(frog);
+
+		if (worldTime - divingTime > 1)
 		{
-			endedTime = worldTime;
-			frog->die();
+			if (rand() % 100 > 80)
+			{
+				scene->randomTurtlesDive();
+				divingTime = worldTime;
+			}
+			
 		}
 
 		if (frog->lowestY > frog->posY & frog->jumping == false)
@@ -211,11 +165,7 @@ void Game::play()
 			startedTime = worldTime;
 
 		frog->move(fps);
-		if (scene->littleFrog != NULL)
-		{
-			scene->littleFrog->move(fps);
-			scene->littleFrog->checkIfTooFar();
-		}
+		
 		
 	}else if(!over){
 		scene->showPaused(draw);
@@ -229,9 +179,113 @@ void Game::play()
 		over = true;
 		scene->showOver(draw);
 	}
-	
-	
 }
+
+void Game::handleFrogDeath()
+{
+	endedTime = worldTime;
+	frog->die();
+	if (scene->littleFrog != NULL)
+		scene->littleFrog = NULL;
+}
+
+
+void Game::showAll()
+{
+	scene->showTimeBar(draw, (scene->time_for_level - (worldTime - startedTime)) / scene->time_for_level);
+
+	SDL_Rect rect;
+	rect.x = 0;
+	rect.y = 0;
+	rect.w = SCREEN_WIDTH;
+	rect.h = SCREEN_HEIGHT - 200;
+
+	draw->drawPartOfTexture(draw->renderer, draw->background, 0, 100, rect, 0, SDL_FLIP_NONE);
+	scene->drawScene(draw, fps, paused);
+	scene->showScores(draw, scores);
+	scene->showLives(draw, frog);
+	frog->showFrog(draw);
+
+	if (scene->littleFrog != NULL)
+		scene->littleFrog->showFrog(draw);
+	if (scene->bee != NULL)
+		scene->bee->show(draw);
+}
+
+void Game::handleBonusesAndBases()
+{
+	int base = scene->detectBaseCollisions(frog->posX, frog->posY, frog->width, frog->height);
+	if (base != -1)
+	{
+		bonus = 0;
+		endedTime = worldTime;
+		bases++;
+		if (scene->littleFrog != NULL)
+		{
+			if (scene->littleFrog->follow) {
+				bonus += 200;
+				showBonus = true;
+			}
+			scene->littleFrog = NULL;
+		}
+		if (scene->bee != NULL)
+		{
+			if (scene->bee->base == base) {
+				bonus += 200;
+				showBonus = true;
+			}
+			scene->bee = NULL;
+		}
+		bonusX = frog->posX - 20;
+		bonusY = frog->posY - 40;
+		scores += bonus;
+		scores += 50 + 10 * (int)(worldTime - startedTime);
+		frog->goToStart();
+	}
+	if (base == -2) //wczesniej zajeta
+		handleFrogDeath();
+
+	if (worldTime - endedTime < 5 && showBonus)
+		scene->showBonus(draw, bonusX, bonusY, bonus);
+	else
+		showBonus = false;
+
+	if (scene->littleFrog != NULL)
+	{
+		setExternalVelocity(scene->littleFrog);
+		if (scene->littleFrog->collision(frog->posX, frog->posY, frog->width, frog->height))
+		{
+			scene->littleFrog->follow = true;
+			scene->littleFrog->posX = frog->posX;
+			scene->littleFrog->posY = frog->posY + 7;
+		}
+
+		scene->littleFrog->move(fps);
+		scene->littleFrog->checkIfTooFar();
+	}
+
+	if (worldTime - bonusTime > 1)
+	{
+		if (rand() % 100 > 90)
+		{
+			if (scene->createBee())
+			{
+				beeTime = worldTime;
+			};
+		}
+		if (rand() % 100 > 50)
+		{
+			scene->createLittleFrog();
+		}
+		bonusTime = worldTime;
+	}
+
+	if (worldTime - beeTime > 5)
+	{
+		scene->bee = NULL;
+	}
+}
+
 
 void Game::setExternalVelocity(Frog* frog)
 {

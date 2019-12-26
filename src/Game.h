@@ -11,7 +11,8 @@ class Game
 	int levels;
 	int current_level;
 	int scores;
-	int x200, y200;
+	int bonus;
+	int bonusX, bonusY;
 public:
 	char name[255];
 	short nameCurrentIndex;
@@ -27,13 +28,13 @@ public:
 	bool menu;
 	bool highscores;
 	bool savedToFile;
-	bool show200;
+	bool showBonus;
 
 	char names[10][255];
 	int highestScores[10];
 	short highestCount;
 
-	double fps, worldTime;
+	double fps, worldTime, bonusTime, beeTime, divingTime;
 	double startedTime, endedTime;
 
 	Draw* draw;
@@ -43,6 +44,9 @@ public:
 	Game(SDL_Renderer* renderer);
 	~Game();
 	void play();
+	void showAll();
+	void handleFrogDeath();
+	void handleBonusesAndBases();
 	void writeName(char *input);
 	void backspaceName();
 	void saveScore();

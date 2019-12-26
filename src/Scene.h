@@ -10,6 +10,7 @@
 #include "Frog.h"
 #include "Turtle.h"
 #include "LittleFrog.h"
+#include "Bee.h"
 
 #define BASES_COUNT 5
 
@@ -32,6 +33,7 @@ public:
 	SDL_Texture* littleFrogTexture;
 	SDL_Texture* frogTexture;
 	SDL_Texture* turtleTexture;
+	SDL_Texture* beeTexture;
 
 	SDL_Surface* timeBar;
 	SDL_Texture* timeBarTexture;
@@ -41,6 +43,7 @@ public:
 	Turtle** turtles;
 	Base** bases;
 	LittleFrog* littleFrog;
+	Bee* bee;
 
 	Scene(SDL_Renderer* renderer);
 	~Scene();
@@ -56,11 +59,14 @@ public:
 	void endGameAsk(Draw* draw);
 	void showMenu(Draw* draw, int option);
 	void showHighScores(Draw* draw, char names[10][255], int highestScores[10], short highestCount);
-	void show200(Draw* draw, int x, int y);
+	void showBonus(Draw* draw, int x, int y, int bonus);
+	void createLittleFrog();
+	void randomTurtlesDive();
+	bool createBee();
 
 	SDL_Texture* loadTexture(SDL_Renderer* renderer, char* path);
 	bool detectEnemyCollisions(int frogX, int frogY, int frogWidth, int frogHeight); 
-	bool detectBaseCollisions(int frogX, int frogY, int frogWidth, int frogHeight);
+	int detectBaseCollisions(int frogX, int frogY, int frogWidth, int frogHeight);
 	bool detectWaterCollision(int frogX, int frogY, int frogWidth, int frogHeight);
 	int detectWoodCollision(int frogX, int frogY, int frogWidth, int frogHeight);
 	int detectTurtleCollision(int frogX, int frogY, int frogWidth, int frogHeight);

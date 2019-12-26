@@ -4,7 +4,7 @@ Frog::Frog(SDL_Texture* texture)
 {
 	error = false;
 	jump_distance = 53;
-	jump_velocity = 130;
+	jump_velocity = 1530;
 	direction = none;
 
 	frogTexture = texture;
@@ -60,7 +60,7 @@ void Frog::showFrog(Draw* draw)
 
 void Frog::setAnimation()
 {
-	if (SDL_GetTicks() - last_animation_time > 150)
+	if (SDL_GetTicks() - last_animation_time > 100)
 	{
 		if (animation_state == a_land)
 			animation_state = a_stand;
@@ -75,7 +75,7 @@ void Frog::setAnimation()
 
 void Frog::jump(SDL_Keycode key)
 {
-	if (!jumping && SDL_GetTicks() - last_time_jumped > 200 && moveable)
+	if (!jumping && SDL_GetTicks() - last_time_jumped > 100 && moveable)
 	{
 		if (direction != none)
 		{

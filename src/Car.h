@@ -16,6 +16,7 @@ public:
 	Car(SDL_Texture* carsTexture, int car_type, int posX, int posY, int velocity, direction_t direction);
 	void show(Draw* draw);
 	void move(int fps);
+	void animate();
 
 };
 

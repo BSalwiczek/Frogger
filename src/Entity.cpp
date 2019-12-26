@@ -14,23 +14,6 @@ bool Entity::collision(int frogX, int frogY, int frogWidth, int frogHeight)
 	int frogCenterX = frogX + frogWidth / 2;
 	int frogCenterY = frogY + frogHeight / 2;
 
-	//if (beetwen(this->posY + this->height / 2, frogY + frogHeight / 2, frogY - frogHeight / 2))
-	//{
-
-	//	if (beetwen(this->posX + this->width / 2, frogX + frogWidth / 2, frogX - frogWidth / 2))
-	//		return true;
-	//	if (beetwen(this->posX - this->width / 2, frogX + frogWidth / 2, frogX - frogWidth / 2))
-	//		return true;
-	//}
-
-	//if (beetwen(this->posY - this->height / 2, frogY + frogHeight / 2, frogY - frogHeight / 2))
-	//{
-	//	if (beetwen(this->posX + this->width / 2, frogX + frogWidth / 2, frogX - frogWidth / 2))
-	//		return true;
-	//	if (beetwen(this->posX - this->width / 2, frogX + frogWidth / 2, frogX - frogWidth / 2))
-	//		return true;
-	//}
-
 	if (beetwen(centerY + this->height / 2, frogCenterY + frogHeight / 2, frogCenterY - frogHeight / 2))
 	{
 		if (beetwen(centerX  + this->width / 2, frogCenterX + frogWidth / 2, frogCenterX - frogWidth / 2))

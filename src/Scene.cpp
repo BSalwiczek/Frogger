@@ -14,6 +14,7 @@ Scene::Scene(SDL_Renderer* renderer)
 	turtleTexture = loadTexture(renderer, "src/bmp/turtle.bmp");
 	littleFrogTexture = loadTexture(renderer, "src/bmp/littlefrog.bmp");
 	frogTexture = loadTexture(renderer, "src/bmp/frog.bmp");
+	beeTexture = loadTexture(renderer, "src/bmp/bee.bmp");
 
 	timeBar = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32,
 		0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
@@ -134,16 +135,48 @@ void Scene::createScene(int level)
 	bases[3] = new Base(baseTexture, 494, 135);
 	bases[4] = new Base(baseTexture, 652, 135);
 
-	//choose entity to put on little frog
-	int littleFrogXPos = 0;
-	for (int i = 0; i < woods_amount; i++)
+	littleFrog = NULL;
+	bee = NULL;
+
+	createLittleFrog();
+	//createBee();
+}
+
+void Scene::createLittleFrog()
+{
+	if (littleFrog == NULL)
 	{
-		if (woods[i]->posY == 358 && rand() % 2 > 0) {
-			littleFrogXPos = woods[i]->posX + 50;
-			break;
+		int littleFrogXPos = 0;
+		for (int i = 0; i < woods_amount; i++)
+		{
+			if (woods[i]->posY == 358) {
+				littleFrogXPos = woods[i]->posX + woods[i]->width/2 - 50;
+				break;
+			}
+		}
+		littleFrog = new LittleFrog(littleFrogTexture, littleFrogXPos, 358);
+	}
+}
+
+bool Scene::createBee()
+{
+	bool created = false;
+	if (bee == NULL)
+	{
+		while (!created)
+		{
+			for (int i = 0; i < BASES_COUNT; i++)
+			{
+				if (bases[i]->visible == false && rand()%100 < 20) {
+					bee = new Bee(beeTexture, i);
+					created = true;
+					break;
+				}
+
+			}
 		}
 	}
-	littleFrog = new LittleFrog(littleFrogTexture, littleFrogXPos, 358);
+	return created;
 }
 
 void Scene::resetScene()
@@ -209,17 +242,19 @@ bool Scene::detectEnemyCollisions(int frogX, int frogY, int frogWidth, int frogH
 	return false;
 }
 
-bool Scene::detectBaseCollisions(int frogX, int frogY, int frogWidth, int frogHeight)
+int Scene::detectBaseCollisions(int frogX, int frogY, int frogWidth, int frogHeight)
 {
 	for (int i = 0; i < BASES_COUNT; i++)
 	{
 		if (bases[i]->collision(frogX, frogY, frogWidth, frogHeight))
 		{
+			if (bases[i]->visible == true)
+				return -2;
 			bases[i]->visible = true;
-			return true;
+			return i;
 		}
 	}
-	return false;
+	return -1;
 }
 
 int Scene::detectWoodCollision(int frogX, int frogY, int frogWidth, int frogHeight)
@@ -239,10 +274,16 @@ int Scene::detectTurtleCollision(int frogX, int frogY, int frogWidth, int frogHe
 {
 	for (int i = 0; i < turtles_amount; i++)
 	{
-		if (turtles[i]->collision(frogX, frogY, frogWidth, frogHeight))
+		if (turtles[i]->collision(frogX, frogY, frogWidth, frogHeight) && turtles[i]->animation_state != diving_middle)
 			return turtles[i]->velocity;
 	}
 	return 0;
+}
+
+void Scene::randomTurtlesDive()
+{
+	int turtle_index = rand() % turtles_amount;
+	turtles[turtle_index]->diving = true;
 }
 
 bool Scene::detectWaterCollision(int frogX, int frogY, int frogWidth, int frogHeight)
@@ -256,7 +297,7 @@ bool Scene::detectWaterCollision(int frogX, int frogY, int frogWidth, int frogHe
 		}
 		for (int i = 0; i < turtles_amount; i++)
 		{
-			if (turtles[i]->centerCollision(frogX, frogY, frogWidth, frogHeight))
+			if (turtles[i]->centerCollision(frogX, frogY, frogWidth, frogHeight) && turtles[i]->animation_state != diving_middle)
 			{
 				return false;
 			}
@@ -390,10 +431,13 @@ void Scene::showHighScores(Draw* draw, char names[10][255], int highestScores[10
 
 }
 
-void Scene::show200(Draw* draw,int x, int y)
+void Scene::showBonus(Draw* draw,int x, int y, int bonus)
 {
 	char text[4];
-	sprintf(text, "200");
+	if(bonus == 200)
+		sprintf(text, "200");
+	if (bonus == 400)
+		sprintf(text, "400");
 	draw->DrawString(x, y, text, draw->charset2, 32);
 
 }

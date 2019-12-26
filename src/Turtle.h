@@ -9,16 +9,19 @@
 typedef enum {
 	swim_start,
 	swim_middle,
-	swim_end
+	swim_end,
+	diving_start,
+	diving_middle,
+	diving_end
 } turtle_animation;
 
 class Turtle: public Entity
 {
 	int size;
 	double step;
-	int last_animation_time;
-	turtle_animation animation_state;
 public:
+	turtle_animation animation_state;
+	bool diving;
 	int velocity;
 	SDL_Texture* texture;
 	Turtle(SDL_Texture* texture, int posX, int posY, int size, int velocity);

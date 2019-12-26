@@ -17,8 +17,6 @@ class Frog: public Entity
 {
 	frog_animation animation_state;
 
-	int last_animation_time;
-
 	int last_time_jumped;
 
 	double step, current_steps;

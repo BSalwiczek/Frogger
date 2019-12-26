@@ -14,25 +14,25 @@ Car::Car(SDL_Texture* carsTexture, int car_type, int posX, int posY, int velocit
 	case 0:
 		this->carRect.x = 0;
 		this->carRect.w = 26;
-		this->carRect.h = 32;
+		this->carRect.h = 34;
 		break;
 	case 1:
-		this->carRect.x = 26;
+		this->carRect.x = 52;
 		this->carRect.w = 50;
 		this->carRect.h = 28;
 		break;
 	case 2:
-		this->carRect.x = 76;
+		this->carRect.x = 102;
 		this->carRect.w = 27;
 		this->carRect.h = 28;
 		break;
 	case 3:
-		this->carRect.x = 103;
+		this->carRect.x = 129;
 		this->carRect.w = 30;
 		this->carRect.h = 40;
 		break;
 	default:
-		this->carRect.x = 133;
+		this->carRect.x = 159;
 		this->carRect.w = 29;
 		this->carRect.h = 40;
 		break;
@@ -43,6 +43,7 @@ Car::Car(SDL_Texture* carsTexture, int car_type, int posX, int posY, int velocit
 
 	this->direction = direction;
 	this->velocity = velocity;
+	last_animation_time = SDL_GetTicks();
 }
 
 void Car::show(Draw* draw)
@@ -52,6 +53,7 @@ void Car::show(Draw* draw)
 
 void Car::move(int fps)
 {
+	animate();
 	if(fps>0)
 		this->step = velocity * (1/(double)fps) + this->step;
 	if (this->step >= 1)
@@ -68,4 +70,20 @@ void Car::move(int fps)
 		this->step = 0;
 	}
 
+}
+
+void Car::animate()
+{
+	if (SDL_GetTicks() - last_animation_time > 20000 / velocity)
+	{
+		if (carRect.x == 0)
+			carRect.x = 26;
+		else if (carRect.x == 26)
+			carRect.x = 0;
+		else if (carRect.x == 159)
+			carRect.x = 188;
+		else if (carRect.x == 188)
+			carRect.x = 159;
+		last_animation_time = SDL_GetTicks();
+	}
 }

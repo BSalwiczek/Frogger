@@ -17,6 +17,7 @@ public:
 	direction_t direction;
 	int velocity; //pixels every second
 	int posX, posY, width, height;
+	int last_animation_time;
 
 	bool collision(int frogX, int frogY, int frogWidth, int frogHeight);
 	bool centerCollision(int frogX, int frogY, int frogWidth, int frogHeight);

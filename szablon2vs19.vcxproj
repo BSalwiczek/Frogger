@@ -20,8 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Base.cpp" />
+    <ClCompile Include="src\BaseCrocodile.cpp" />
     <ClCompile Include="src\Bee.cpp" />
     <ClCompile Include="src\Car.cpp" />
+    <ClCompile Include="src\Crocodile.cpp" />
     <ClCompile Include="src\Draw.cpp" />
     <ClCompile Include="src\Entity.cpp" />
     <ClCompile Include="src\Frog.cpp" />
@@ -46,8 +48,10 @@
   <ItemGroup>
     <ClInclude Include="dirent\dirent.h" />
     <ClInclude Include="src\Base.h" />
+    <ClInclude Include="src\BaseCrocodile.h" />
     <ClInclude Include="src\Bee.h" />
     <ClInclude Include="src\Car.h" />
+    <ClInclude Include="src\Crocodile.h" />
     <ClInclude Include="src\Draw.h" />
     <ClInclude Include="src\Entity.h" />
     <ClInclude Include="src\Frog.h" />

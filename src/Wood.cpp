@@ -10,7 +10,6 @@ Wood::Wood(SDL_Texture* texture, int posX, int posY, int size, int velocity)
 	this->size = size;
 	this->height = 34;
 	this->velocity = velocity;
-	this->step = 0;
 	this->direction = right;
 }
 
@@ -47,18 +46,18 @@ void Wood::show(Draw* draw)
 
 }
 
-void Wood::move(int fps)
-{
-	if (fps > 0)
-		this->step = velocity * (1 / (double)fps) + this->step;
-	if (this->step >= 1)
-	{
-			this->posX += 1;
-		if (this->posX > SCREEN_WIDTH * 2 - this->width)
-			this->posX = -this->width;
-		if (this->posX < -SCREEN_WIDTH + this->width)
-			this->posX = SCREEN_WIDTH + this->width;
-
-		this->step = 0;
-	}
-}
+//void Wood::move(int fps)
+//{
+//	if (fps > 0)
+//		this->step = velocity * (1 / (double)fps) + this->step;
+//	if (this->step >= 1)
+//	{
+//			this->posX += 1;
+//		if (this->posX > SCREEN_WIDTH * 2 - this->width)
+//			this->posX = -this->width;
+//		if (this->posX < -SCREEN_WIDTH + this->width)
+//			this->posX = SCREEN_WIDTH + this->width;
+//
+//		this->step = 0;
+//	}
+//}

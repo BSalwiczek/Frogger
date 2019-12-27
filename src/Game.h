@@ -34,7 +34,7 @@ public:
 	int highestScores[10];
 	short highestCount;
 
-	double fps, worldTime, bonusTime, beeTime, divingTime;
+	double fps, worldTime, bonusTime, beeTime, divingTime, baseCrocodileTime;
 	double startedTime, endedTime;
 
 	Draw* draw;

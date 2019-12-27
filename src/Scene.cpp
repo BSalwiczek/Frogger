@@ -7,6 +7,9 @@ Scene::Scene(SDL_Renderer* renderer)
 	cars_amount = 0;
 	turtles_amount = 0;
 	time_for_level = 100.0;
+	bee_chance = 0;
+	little_frog_chance = 0;
+	base_crocodile_chance = 0;
 
 	carsTexture = loadTexture(renderer, "src/bmp/cars.bmp");
 	baseTexture = loadTexture(renderer, "src/bmp/base.bmp");
@@ -15,6 +18,8 @@ Scene::Scene(SDL_Renderer* renderer)
 	littleFrogTexture = loadTexture(renderer, "src/bmp/littlefrog.bmp");
 	frogTexture = loadTexture(renderer, "src/bmp/frog.bmp");
 	beeTexture = loadTexture(renderer, "src/bmp/bee.bmp");
+	baseCrocodileTexture = loadTexture(renderer, "src/bmp/baseCrocodile.bmp");
+	crocodileTexture = loadTexture(renderer, "src/bmp/crocodile.bmp");
 
 	timeBar = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32,
 		0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
@@ -45,7 +50,7 @@ void Scene::createScene(int level)
 	
 	char buffer[100];
 	char name;
-	int amount, time = 0;
+	int amount, time = 0, chance = 0;
 
 	fgets(buffer, sizeof buffer / sizeof buffer[0], file);
 	if (sscanf(buffer, "Time: %i", &time) > 0)
@@ -53,7 +58,25 @@ void Scene::createScene(int level)
 		time_for_level = time;
 	}
 
-	for (int i = 0; i < 3; i++)
+	fgets(buffer, sizeof buffer / sizeof buffer[0], file);
+	if (sscanf(buffer, "Bee chance: %i", &chance) > 0)
+	{
+		bee_chance = chance;
+	}
+
+	fgets(buffer, sizeof buffer / sizeof buffer[0], file);
+	if (sscanf(buffer, "Little frog chance: %i", &chance) > 0)
+	{
+		little_frog_chance = chance;
+	}
+
+	fgets(buffer, sizeof buffer / sizeof buffer[0], file);
+	if (sscanf(buffer, "Base crocodile chance: %i", &chance) > 0)
+	{
+		base_crocodile_chance = chance;
+	}
+
+	for (int i = 0; i < 4; i++)
 	{
 		fgets(buffer, sizeof buffer / sizeof buffer[0], file);
 		if (sscanf(buffer, "%c %i", &name, &amount) > 0)
@@ -71,6 +94,10 @@ void Scene::createScene(int level)
 				cars_amount = amount;
 				cars = new Car * [amount];
 			}
+			if (name == 'K') {
+				crocodiles_amount = amount;
+				crocodiles = new Crocodile * [amount];
+			}
 		}
 	}
 	
@@ -79,6 +106,7 @@ void Scene::createScene(int level)
 	int woods_index = 0;
 	int cars_index = 0;
 	int turtles_index = 0;
+	int crocodiles_index = 0;
 
 	for(int i=0;i<10;i++)
 	{
@@ -92,7 +120,7 @@ void Scene::createScene(int level)
 				int x = 0, velocity = 0, size = 0, car_type = 0, direction = 0;
 				char name = ' ';
 				fgets(buffer, sizeof buffer / sizeof buffer[0], file);
-				if (sscanf(buffer, "%c %i %i %i", &name, &x, &velocity, &size) > 0 && (name == 'W' || name == 'T'))
+				if (sscanf(buffer, "%c %i %i %i", &name, &x, &velocity, &size) > 0 && (name == 'W' || name == 'T' || name == 'K'))
 				{
 					printf("%c %i %i %i \n", name, x, velocity, size);
 					if (name == 'W')
@@ -104,6 +132,11 @@ void Scene::createScene(int level)
 					{
 						turtles[turtles_index] = new Turtle(turtleTexture, x, y, size, velocity);
 						turtles_index++;
+					}
+					else if (name == 'K')
+					{
+						crocodiles[crocodiles_index] = new Crocodile(crocodileTexture, x, y, velocity);
+						crocodiles_index++;
 					}
 					
 				}
@@ -137,9 +170,11 @@ void Scene::createScene(int level)
 
 	littleFrog = NULL;
 	bee = NULL;
+	baseCrocodile = NULL;
 
-	createLittleFrog();
+	//createLittleFrog();
 	//createBee();
+	//createBaseCrocodile();
 }
 
 void Scene::createLittleFrog()
@@ -158,22 +193,44 @@ void Scene::createLittleFrog()
 	}
 }
 
+bool Scene::createBaseCrocodile()
+{
+	bool created = false;
+	if (baseCrocodile == NULL)
+	{
+		for (int i = 0; i < BASES_COUNT; i++)
+		{
+			if (bases[i]->visible == false && rand() % 100 < 20) {
+				if (bee != NULL)
+					if (bee->base == i)
+						continue;
+				baseCrocodile = new BaseCrocodile(baseCrocodileTexture, i);
+				created = true;
+				break;
+			}
+
+		}
+	}
+	return created;
+}
+
+
 bool Scene::createBee()
 {
 	bool created = false;
 	if (bee == NULL)
 	{
-		while (!created)
+		for (int i = 0; i < BASES_COUNT; i++)
 		{
-			for (int i = 0; i < BASES_COUNT; i++)
-			{
-				if (bases[i]->visible == false && rand()%100 < 20) {
-					bee = new Bee(beeTexture, i);
-					created = true;
-					break;
-				}
-
+			if (bases[i]->visible == false && rand()%100 < 20) {
+				if (baseCrocodile != NULL)
+					if (baseCrocodile->base == i)
+						continue;
+				bee = new Bee(beeTexture, i);
+				created = true;
+				break;
 			}
+
 		}
 	}
 	return created;
@@ -190,16 +247,22 @@ void Scene::resetScene()
 	for (int i = 0; i < turtles_amount; i++)
 		delete turtles[i];
 
+	for (int i = 0; i < crocodiles_amount; i++)
+		delete crocodiles[i];
+
 	for (int i = 0; i < BASES_COUNT; i++)
 		delete bases[i];
 
-	delete[] cars;
-	delete[] turtles;
+	if(cars_amount>0) delete[] cars;
+	//if(turtles_amount>0) delete[] turtles;
+	//if (crocodiles_amount > 0) delete[] crocodiles;
+
 	delete[] bases;
 
 	woods_amount = 0;
 	cars_amount = 0;
 	turtles_amount = 0;
+	crocodiles_amount = 0;
 }
 
 void Scene::drawScene(Draw* draw, int fps, bool paused)
@@ -223,6 +286,13 @@ void Scene::drawScene(Draw* draw, int fps, bool paused)
 		if (!paused)
 			turtles[i]->move(fps);
 		turtles[i]->show(draw);
+	}
+
+	for (int i = 0; i < crocodiles_amount; i++)
+	{
+		if (!paused)
+			crocodiles[i]->move(fps);
+		crocodiles[i]->show(draw);
 	}
 
 	for (int i = 0; i < BASES_COUNT; i++)
@@ -250,11 +320,26 @@ int Scene::detectBaseCollisions(int frogX, int frogY, int frogWidth, int frogHei
 		{
 			if (bases[i]->visible == true)
 				return -2;
-			bases[i]->visible = true;
+			if (baseCrocodile != NULL) {
+				if (!(i == baseCrocodile->base && baseCrocodile->animation_state == attact))
+					bases[i]->visible = true;
+			}else
+				bases[i]->visible = true;
+
 			return i;
 		}
 	}
 	return -1;
+}
+
+int Scene::detectCrocodileCollision(int frogX, int frogY, int frogWidth, int frogHeight)
+{
+	for (int i = 0; i < crocodiles_amount; i++)
+	{
+		if (crocodiles[i]->collision(frogX, frogY, frogWidth, frogHeight))
+			return crocodiles[i]->velocity;
+	}
+	return 0;
 }
 
 int Scene::detectWoodCollision(int frogX, int frogY, int frogWidth, int frogHeight)
@@ -262,11 +347,8 @@ int Scene::detectWoodCollision(int frogX, int frogY, int frogWidth, int frogHeig
 	for (int i = 0; i < woods_amount; i++)
 	{
 		if (woods[i]->collision(frogX, frogY, frogWidth, frogHeight))
-		{
 			return woods[i]->velocity;
-		}
 	}
-
 	return 0;
 }
 
@@ -282,8 +364,11 @@ int Scene::detectTurtleCollision(int frogX, int frogY, int frogWidth, int frogHe
 
 void Scene::randomTurtlesDive()
 {
-	int turtle_index = rand() % turtles_amount;
-	turtles[turtle_index]->diving = true;
+	if (turtles_amount > 0)
+	{
+		int turtle_index = rand() % turtles_amount;
+		turtles[turtle_index]->diving = true;
+	}
 }
 
 bool Scene::detectWaterCollision(int frogX, int frogY, int frogWidth, int frogHeight)
@@ -298,9 +383,12 @@ bool Scene::detectWaterCollision(int frogX, int frogY, int frogWidth, int frogHe
 		for (int i = 0; i < turtles_amount; i++)
 		{
 			if (turtles[i]->centerCollision(frogX, frogY, frogWidth, frogHeight) && turtles[i]->animation_state != diving_middle)
-			{
 				return false;
-			}
+		}
+		for (int i = 0; i < crocodiles_amount; i++)
+		{
+			if (crocodiles[i]->centerCollision(frogX, frogY, frogWidth, frogHeight))
+				return false;
 		}
 		return true;
 	}

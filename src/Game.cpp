@@ -8,12 +8,12 @@ Game::Game(SDL_Renderer* renderer)
 	endedTime = 0;
 	fps = 0;
 	bases = 0;
-	showBonus = false;
 	bonusX = 0;
 	bonusY = 0;
 	bonus = 0;
 	beeTime = 0;
 	divingTime = 0;
+	baseCrocodileTime = 0;
 	draw = new Draw(renderer);
 	error = false;
 	if (draw->error == true)
@@ -29,11 +29,12 @@ Game::Game(SDL_Renderer* renderer)
 
 
 	levels = getLevelsCount();
-	current_level = 1;
+	current_level = 2;
 	printf("%i \n", levels);
 
 	scene->createScene(current_level);
 
+	showBonus = false;
 	menu = true;
 	paused = false;
 	over = false;
@@ -57,6 +58,8 @@ Game::Game(SDL_Renderer* renderer)
 	while (fscanf(file, "%s , %d", names[highestCount], &highestScores[highestCount]) > 0)
 	{
 		highestCount++;
+		if (highestCount > 9)
+			break;
 	}
 	fclose(file);
 }
@@ -210,6 +213,8 @@ void Game::showAll()
 		scene->littleFrog->showFrog(draw);
 	if (scene->bee != NULL)
 		scene->bee->show(draw);
+	if (scene->baseCrocodile != NULL)
+		scene->baseCrocodile->show(draw);
 }
 
 void Game::handleBonusesAndBases()
@@ -217,30 +222,37 @@ void Game::handleBonusesAndBases()
 	int base = scene->detectBaseCollisions(frog->posX, frog->posY, frog->width, frog->height);
 	if (base != -1)
 	{
-		bonus = 0;
-		endedTime = worldTime;
-		bases++;
-		if (scene->littleFrog != NULL)
-		{
-			if (scene->littleFrog->follow) {
-				bonus += 200;
-				showBonus = true;
-			}
-			scene->littleFrog = NULL;
+		if (scene->baseCrocodile != NULL && scene->baseCrocodile->base == base && scene->baseCrocodile->animation_state == attact) {
+			handleFrogDeath();
 		}
-		if (scene->bee != NULL)
+		else
 		{
-			if (scene->bee->base == base) {
-				bonus += 200;
-				showBonus = true;
+			bonus = 0;
+			endedTime = worldTime;
+			bases++;
+			if (scene->littleFrog != NULL)
+			{
+				if (scene->littleFrog->follow) {
+					bonus += 200;
+					showBonus = true;
+				}
+				scene->littleFrog = NULL;
 			}
-			scene->bee = NULL;
+			if (scene->bee != NULL)
+			{
+				if (scene->bee->base == base) {
+					bonus += 200;
+					showBonus = true;
+				}
+				scene->bee = NULL;
+			}
+			bonusX = frog->posX - 20;
+			bonusY = frog->posY - 40;
+			scores += bonus;
+			scores += 50 + 10 * (int)(worldTime - startedTime);
+			frog->goToStart();
 		}
-		bonusX = frog->posX - 20;
-		bonusY = frog->posY - 40;
-		scores += bonus;
-		scores += 50 + 10 * (int)(worldTime - startedTime);
-		frog->goToStart();
+		
 	}
 	if (base == -2) //wczesniej zajeta
 		handleFrogDeath();
@@ -266,18 +278,30 @@ void Game::handleBonusesAndBases()
 
 	if (worldTime - bonusTime > 1)
 	{
-		if (rand() % 100 > 90)
+		if (rand() % 100 < scene->bee_chance)
 		{
 			if (scene->createBee())
 			{
 				beeTime = worldTime;
 			};
 		}
-		if (rand() % 100 > 50)
+		if (rand() % 100 < scene->little_frog_chance)
 		{
 			scene->createLittleFrog();
 		}
+		if (rand() % 100 < scene->base_crocodile_chance)
+		{
+			if (scene->createBaseCrocodile())
+			{
+				baseCrocodileTime = worldTime;
+			}
+		}
 		bonusTime = worldTime;
+	}
+	
+	if (worldTime - baseCrocodileTime > 5)
+	{
+		scene->baseCrocodile = NULL;
 	}
 
 	if (worldTime - beeTime > 5)
@@ -302,6 +326,13 @@ void Game::setExternalVelocity(Frog* frog)
 	{
 		frog->external_velocity = velocity;
 		frog->external_velocity_direction = left;
+	}
+
+	velocity = scene->detectCrocodileCollision(frog->posX, frog->posY, frog->width, frog->height);
+	if (velocity > 0)
+	{
+		frog->external_velocity = velocity;
+		frog->external_velocity_direction = right;
 	}
 }
 

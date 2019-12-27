@@ -1,7 +1,11 @@
 Time: 50
+Bee chance: 15
+Little frog chance: 30
+Base crocodile chance: 50
 W 16
-T 8
+T 7
 C 25
+K 0
 1 196
 W 200 40 3
 W 500 40 3
@@ -12,8 +16,8 @@ W 1200 40 3
 
 2 250
 T 0 30 3
-T 400 30 7
-T 500 30 4
+T 300 30 3
+T 600 30 4
 T 1100 30 5
 
 3 304

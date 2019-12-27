@@ -5,6 +5,8 @@ Entity::Entity()
 {
 	direction = up;
 	velocity = 1;
+	step = 0;
+
 }
 
 bool Entity::collision(int frogX, int frogY, int frogWidth, int frogHeight)
@@ -57,4 +59,20 @@ bool Entity::beetwen(int x, int up, int down)
 	if (x<up && x>down)
 		return true;
 	return false;
+}
+
+void Entity::move(int fps)
+{
+	if (fps > 0)
+		this->step = velocity * (1 / (double)fps) + this->step;
+	if (this->step >= 1)
+	{
+		this->posX += 1;
+		if (this->posX > SCREEN_WIDTH * 2 - this->width)
+			this->posX = -this->width;
+		if (this->posX < -SCREEN_WIDTH + this->width)
+			this->posX = SCREEN_WIDTH + this->width;
+
+		this->step = 0;
+	}
 }

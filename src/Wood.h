@@ -10,12 +10,10 @@
 class Wood: public Entity
 {
 	int size;
-	double step;
 public:
-	int velocity;
 	SDL_Texture* texture;
 	Wood(SDL_Texture* texture, int posX, int posY, int size, int velocity);
 	void show(Draw* draw);
-	void move(int fps);
+	//void move(int fps);
 };
 

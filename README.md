@@ -7,7 +7,7 @@
 ## Reading levels from file.
 To create your own level just add text file named ```etapX.txt``` where X is next level number.
 ### File architecture:
-Lines:
+Lines:  
 1)Time in seconds  
 2,3,4) Procentage chance of showing entities (etity is choosing random with this probability every second)  
 5,6,7,8) Number of logs in game (W), turtles (T), cars (C), crocodiles (K)  

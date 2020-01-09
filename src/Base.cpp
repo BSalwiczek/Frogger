@@ -1,22 +1,15 @@
 #include "Base.h"
 
-Base::Base(SDL_Texture* texture, int posX, int posY)
+Base::Base(SDL_Texture* texture, int posX, int posY) : Entity(texture, posX, posY, 0)
 {
-	this->texture = texture;
-	this->posX = posX;
-	this->posY = posY;
-	this->width = 48;
-	this->height = 48;
-	this->visible = false;
+	width = BASE_SIZE;
+	height = BASE_SIZE;
+	visible = false;
 }
 
 void Base::show(Draw* draw)
 {
-	SDL_Rect rect;
-	rect.h = this->height;
-	rect.w = this->width;
-	rect.x = 48;
-	rect.y = 0;
+	SDL_Rect rect = { BASE_SIZE,0,width,height };
 	if(visible)
-		draw->drawPartOfTexture(draw->renderer, this->texture, this->posX, this->posY, rect, 0, SDL_FLIP_NONE);
+		draw->drawPartOfTexture(draw->renderer, texture, (int)posX, (int)posY, rect, 0, SDL_FLIP_NONE);
 }

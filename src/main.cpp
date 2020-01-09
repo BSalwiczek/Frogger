@@ -9,13 +9,10 @@ int main(int argc, char** argv) {
 	int t1, t2, quit, frames, rc;
 	double delta, fpsTimer, distance;
 	SDL_Event event;
-	SDL_Surface* screen;
-	SDL_Texture* scrtex;
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 
 	srand(time(NULL));
-
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		printf("SDL_Init error: %s\n", SDL_GetError());
@@ -36,7 +33,6 @@ int main(int argc, char** argv) {
 
 	SDL_SetWindowTitle(window, "Szablon do zdania drugiego 2017");
 
-
 	SDL_ShowCursor(SDL_DISABLE);
 
 	Game* game = new Game(renderer);
@@ -51,8 +47,7 @@ int main(int argc, char** argv) {
 
 		if (game->error)
 		{
-			//SDL_FreeSurface(screen);
-			//SDL_DestroyTexture(scrtex);
+			delete game;
 			SDL_DestroyWindow(window);
 			SDL_DestroyRenderer(renderer);
 			SDL_Quit();
@@ -65,14 +60,11 @@ int main(int argc, char** argv) {
 		// the last screen was drawn
 		// delta is the same time in seconds
 		delta = (t2 - t1) * 0.001;
+		game->delta = delta;
 		t1 = t2;
-
 
 		if(!game->paused && !game->over)
 			game->worldTime += delta;
-
-		//game->draw->DrawSurface(screen, game->draw->background, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-		
 
 		fpsTimer += delta;
 		if (fpsTimer > 0.5) {
@@ -81,22 +73,7 @@ int main(int argc, char** argv) {
 			fpsTimer -= 0.5;
 		};
 
-		//// tekst informacyjny / info text
-		//game->draw->DrawRectangle(screen, 4, 4, SCREEN_WIDTH - 8, 36, czerwony, niebieski);
-		//"template for the second project, elapsed time = %.1lf s  %.0lf frames / s"
-		//sprintf(text, "Szablon drugiego zadania, czas trwania = %.1lf s  %.0lf klatek / s", game->worldTime, game->fps);
-		//game->draw->DrawString(screen, screen->w / 2 - strlen(text) * 8 / 2, 10, text, game->draw->charset, 8);
-
-
-		////"Esc - exit, \030 - faster, \031 - slower"
-		//sprintf(text, "GH8I7");
-		//game->draw->DrawString(screen, screen->w / 2 - strlen(text) * 8 / 2, 26, text, game->draw->charset, 8);
-
-
-		//SDL_UpdateTexture(scrtex, NULL, screen->pixels, screen->pitch);
 		SDL_RenderClear(renderer);
-		//SDL_RenderCopy(renderer, scrtex, NULL, NULL);
-		//SDL_FillRect(screen, NULL, 0x000000);
 
 		if (game->menu)
 			game->scene->showMenu(game->draw, game->menuOption);
@@ -113,7 +90,6 @@ int main(int argc, char** argv) {
 			delete game;
 			game = new Game(renderer);
 		}
-		
 
 		// handling of events (if there were any)
 		while (SDL_PollEvent(&event)) {
@@ -129,7 +105,6 @@ int main(int argc, char** argv) {
 					if(game->scene->littleFrog != NULL)
 						if(game->scene->littleFrog->follow)
 							game->scene->littleFrog->jump(event.key.keysym.sym);
-
 				}
 
 				if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_DOWN)
@@ -152,7 +127,7 @@ int main(int argc, char** argv) {
 					if (game->endGameAsk)
 						quit = 1;
 				}
-				if (event.key.keysym.sym == SDLK_n & !game->win)
+				if (event.key.keysym.sym == SDLK_n && !game->win)
 				{
 					if (game->endGameAsk)
 						game->endGameAsk = false;
@@ -179,7 +154,6 @@ int main(int argc, char** argv) {
 						game->backspaceName();
 				}
 
-
 				if (event.key.keysym.sym == SDLK_RETURN)
 				{
 					if (game->getName)
@@ -199,7 +173,6 @@ int main(int argc, char** argv) {
 			case SDL_TEXTINPUT:
 				if (game->getName)
 					game->writeName(event.text.text);
-
 				break;
 				
 			case SDL_QUIT:
@@ -210,13 +183,9 @@ int main(int argc, char** argv) {
 		frames++;
 	};
 
-	// freeing all surfaces
 	delete game;
-	//SDL_FreeSurface(screen);
-	//SDL_DestroyTexture(scrtex);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
-
 	SDL_Quit();
 	return 0;
 };

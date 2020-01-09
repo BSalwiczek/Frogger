@@ -1,61 +1,57 @@
 #include "Frog.h"
 
-Frog::Frog(SDL_Texture* texture)
+Frog::Frog(SDL_Texture* texture) : Entity(texture, posX, posY, 500)
 {
 	error = false;
-	jump_distance = 53;
-	jump_velocity = 1530;
-	direction = none;
-
-	frogTexture = texture;
-
-	last_animation_time = SDL_GetTicks();
-	animation_state = a_stand; 
-	last_time_jumped = 0;
 	jumping = false;
 	moveable = true;
 	first_move = true;
+
+	jump_distance = 53;
+	direction = none;
+
+	animation_state = a_stand; 
+	last_time_jumped = 0;
 	lives = MAX_LIVES;
-	this->external_velocity = 0;
-	this->external_velocity_direction = right;
+	external_velocity = 0;
+	external_velocity_direction = right;
 	current_steps = 0;
-	step = 0;
+
+	goToStart();
 }
 
 void Frog::showFrog(Draw* draw)
 {
 	setAnimation();
-	SDL_Rect SrcR = {0,0,41,42};
+	SDL_Rect SrcR = {0,0,FROG_WIDTH,FROG_HEIGHT};
 
-	this->width = 41;
-	this->height = 42;
+	width = FROG_WIDTH;
+	height = FROG_HEIGHT;
 
 	switch (animation_state)
 	{
 	case a_jump:
-		SrcR.x = 42;
-		this->width = 41;
-		this->height = 46;
+		SrcR.x = FROG_WIDTH + 1;
+		height = FROG_HEIGHT + 4;
 		break;
 	case a_stand:
-		SrcR.x = 83;
-		this->width = 40;
-		this->height = 33;
+		SrcR.x = FROG_WIDTH*2 + 1;
+		width = FROG_WIDTH - 1;
+		height = FROG_HEIGHT - 9;
 		break;
 	}
 
-	SrcR.w = this->width;
-	SrcR.h = this->height;
-
+	SrcR.w = width;
+	SrcR.h = height;
 
 	if(direction == left)
-		draw->drawPartOfTexture(draw->renderer, frogTexture, posX, posY, SrcR, 90, SDL_FLIP_VERTICAL);
+		draw->drawPartOfTexture(draw->renderer, texture, (int)posX, (int)posY, SrcR, 90, SDL_FLIP_VERTICAL);
 	if (direction == right)
-		draw->drawPartOfTexture(draw->renderer, frogTexture, posX, posY, SrcR, 90, SDL_FLIP_NONE);
+		draw->drawPartOfTexture(draw->renderer, texture, (int)posX, (int)posY, SrcR, 90, SDL_FLIP_NONE);
 	else if (direction == down)
-		draw->drawPartOfTexture(draw->renderer, frogTexture, posX, posY, SrcR, 180, SDL_FLIP_NONE);
+		draw->drawPartOfTexture(draw->renderer, texture, (int)posX, (int)posY, SrcR, 180, SDL_FLIP_NONE);
 	else if (direction == up || direction == none)
-		draw->drawPartOfTexture(draw->renderer, frogTexture, posX, posY, SrcR, 0, SDL_FLIP_NONE);
+		draw->drawPartOfTexture(draw->renderer, texture, (int)posX, (int)posY, SrcR, 0, SDL_FLIP_NONE);
 }
 
 void Frog::setAnimation()
@@ -85,7 +81,6 @@ void Frog::jump(SDL_Keycode key)
 			jumping = true;
 			animation_state = a_jump; 
 		}
-
 		
 		if (key == SDLK_UP)
 			direction = up;
@@ -98,80 +93,56 @@ void Frog::jump(SDL_Keycode key)
 		else
 			direction = none;
 	}
-
 }
 
-void Frog::move(int fps)
+void Frog::move(double delta)
 {
 	if (jumping)
 	{
-		//if (fps > 0)
-		//	this->step = this->jump_velocity * (1 / (double)fps) + this->step;
-
-		step = 1;
-		if (step >= 1)
+		int step = delta * velocity;
+		if (jump_distance - current_steps <= 1)
+			step = jump_distance - current_steps;
+		switch (direction)
 		{
-			switch (direction)
-			{
-			case left:
-				posX -= step;
-				break;
-			case right:
-				posX += step;
-				break;
-			case up:
-				posY -= step;
-				break;
-			case down:
-				posY += step;
-				break;
-			default:
-				break;
-			}
-
-			current_steps += step;
-			if (current_steps >= jump_distance)
-			{
-				jumping = false;
-				last_time_jumped = SDL_GetTicks();
-				current_steps = 0;
-			}
-
-			step = 0;
+		case left:
+			posX -= step;
+			break;
+		case right:
+			posX += step;
+			break;
+		case up:
+			posY -= step;
+			break;
+		case down:
+			posY += step;
+			break;
+		default:
+			break;
 		}
-	}
-	else if (external_velocity > 0)
-	{
-		if (fps > 0)
-			this->step = this->external_velocity * (1 / (double)fps) + this->step;
-
-		if (step >= 1)
+		current_steps += step;
+		if (current_steps >= jump_distance)
 		{
-			switch (external_velocity_direction)
-			{
-			case left:
-				posX -= 1;
-				break;
-			case right:
-				posX += 1;
-				break;
-			case up:
-				posY -= 1;
-				break;
-			case down:
-				posY += 1;
-				break;
-			default:
-				break;
-			}
-			step = 0;
+			jumping = false;
+			last_time_jumped = SDL_GetTicks();
+			current_steps = 0;
+		}
+	} else if (external_velocity > 0)
+	{
+		switch (external_velocity_direction)
+		{
+		case left:
+			posX -= external_velocity * delta;
+			break;
+		case right:
+			posX += external_velocity * delta;
+			break;
 		}
 	}
 }
 
 void Frog::die()
 {
-	if (this->lives > 0)
+	if (lives > 0)
 	{
 		lives--;
 		external_velocity = 0;

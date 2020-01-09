@@ -25,6 +25,7 @@
 class Scene
 {
 	int woods_amount, turtles_amount, cars_amount, crocodiles_amount;
+	SDL_Texture* loadTexture(SDL_Renderer* renderer, char* path);
 public:
 	bool error;
 	float time_for_level;
@@ -56,11 +57,11 @@ public:
 	~Scene();
 	void createScene(int level);
 	void resetScene();
-	void drawScene(Draw* draw, int fps, bool paused);
+	void drawScene(Draw* draw, double delta, bool paused);
 	void showLives(Draw* draw, Frog* frog);
 	void showPaused(Draw* draw); 
 	void showOver(Draw* draw);
-	void showWin(Draw* draw, int scores, char name[]);
+	void showEnterScores(Draw* draw, int scores, char name[], bool won);
 	void showScores(Draw* draw, int scores);
 	void showTimeBar(Draw* draw, double len);
 	void endGameAsk(Draw* draw);
@@ -73,7 +74,6 @@ public:
 	bool createBaseCrocodile();
 	void randomTurtlesDive();
 
-	SDL_Texture* loadTexture(SDL_Renderer* renderer, char* path);
 	bool detectEnemyCollisions(int frogX, int frogY, int frogWidth, int frogHeight); 
 	int detectBaseCollisions(int frogX, int frogY, int frogWidth, int frogHeight);
 	bool detectWaterCollision(int frogX, int frogY, int frogWidth, int frogHeight);

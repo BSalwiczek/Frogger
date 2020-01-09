@@ -37,9 +37,12 @@ SDL_Texture* Scene::loadTexture(SDL_Renderer* renderer, char* path)
 	{
 		printf("SDL_LoadBMP(%s) error: %s\n",path, SDL_GetError());
 		error = true;
-		return false;
+		return NULL;
 	}
-	return SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
+
+	return texture;
 }
 
 void Scene::createScene(int level)
@@ -54,34 +57,26 @@ void Scene::createScene(int level)
 
 	fgets(buffer, sizeof buffer / sizeof buffer[0], file);
 	if (sscanf(buffer, "Time: %i", &time) > 0)
-	{
 		time_for_level = time;
-	}
 
 	fgets(buffer, sizeof buffer / sizeof buffer[0], file);
 	if (sscanf(buffer, "Bee chance: %i", &chance) > 0)
-	{
 		bee_chance = chance;
-	}
 
 	fgets(buffer, sizeof buffer / sizeof buffer[0], file);
 	if (sscanf(buffer, "Little frog chance: %i", &chance) > 0)
-	{
 		little_frog_chance = chance;
-	}
 
 	fgets(buffer, sizeof buffer / sizeof buffer[0], file);
 	if (sscanf(buffer, "Base crocodile chance: %i", &chance) > 0)
-	{
 		base_crocodile_chance = chance;
-	}
 
 	for (int i = 0; i < 4; i++)
 	{
 		fgets(buffer, sizeof buffer / sizeof buffer[0], file);
 		if (sscanf(buffer, "%c %i", &name, &amount) > 0)
 		{
-			printf("%c %i \n", name, amount);
+			//printf("%c %i \n", name, amount);
 			if (name == 'W') {
 				woods_amount = amount;
 				woods = new Wood * [amount];
@@ -114,7 +109,7 @@ void Scene::createScene(int level)
 		fgets(buffer, sizeof buffer / sizeof buffer[0], file);
 		if (sscanf(buffer, "%i %i", &rows[i], &y) > 0)
 		{
-			printf("%i %i \n", rows[i], y);
+			//printf("%i %i \n", rows[i], y);
 			while (feof(file) == 0)
 			{
 				int x = 0, velocity = 0, size = 0, car_type = 0, direction = 0;
@@ -122,7 +117,7 @@ void Scene::createScene(int level)
 				fgets(buffer, sizeof buffer / sizeof buffer[0], file);
 				if (sscanf(buffer, "%c %i %i %i", &name, &x, &velocity, &size) > 0 && (name == 'W' || name == 'T' || name == 'K'))
 				{
-					printf("%c %i %i %i \n", name, x, velocity, size);
+					//printf("%c %i %i %i \n", name, x, velocity, size);
 					if (name == 'W')
 					{
 						woods[woods_index] = new Wood(woodTexture, x, y, size, velocity);
@@ -142,7 +137,7 @@ void Scene::createScene(int level)
 				}
 				else if (sscanf(buffer, "%c %i %i %i %i", &name, &x, &car_type, &velocity, &direction) > 0 && name == 'C')
 				{
-					printf("%c %i %i %i %i \n", name, x, car_type, velocity, direction);
+					//printf("%c %i %i %i %i \n", name, x, car_type, velocity, direction);
 
 					cars[cars_index] = new Car(carsTexture,car_type, x, y, velocity, direction == 0 ? left : right);
 					cars_index++;
@@ -156,10 +151,9 @@ void Scene::createScene(int level)
 
 	fclose(file);
 
-	printf("Cars index %i \n", cars_index);
-	printf("Wood index %i \n", woods_index);
-	printf("Turtles index %i \n", turtles_index);
-
+	//printf("Cars index %i \n", cars_index);
+	//printf("Wood index %i \n", woods_index);
+	//printf("Turtles index %i \n", turtles_index);
 
 	bases = new Base*[BASES_COUNT];
 	bases[0] = new Base(baseTexture, 19, 135);
@@ -181,15 +175,13 @@ void Scene::createLittleFrog()
 {
 	if (littleFrog == NULL)
 	{
-		int littleFrogXPos = 0;
 		for (int i = 0; i < woods_amount; i++)
 		{
 			if (woods[i]->posY == 358) {
-				littleFrogXPos = woods[i]->posX + woods[i]->width/2 - 50;
+				littleFrog = new LittleFrog(littleFrogTexture, woods[i]->posX, woods[i]->width, 358);
 				break;
 			}
 		}
-		littleFrog = new LittleFrog(littleFrogTexture, littleFrogXPos, 358);
 	}
 }
 
@@ -238,26 +230,14 @@ bool Scene::createBee()
 
 void Scene::resetScene()
 {
-	for (int i = 0; i < cars_amount; i++)
-		delete cars[i];
-
-	for (int i = 0; i < woods_amount; i++)
-		delete woods[i];
-
-	for (int i = 0; i < turtles_amount; i++)
-		delete turtles[i];
-
-	for (int i = 0; i < crocodiles_amount; i++)
-		delete crocodiles[i];
-
-	for (int i = 0; i < BASES_COUNT; i++)
-		delete bases[i];
-
-	if(cars_amount>0) delete[] cars;
-	//if(turtles_amount>0) delete[] turtles;
-	//if (crocodiles_amount > 0) delete[] crocodiles;
-
+	delete baseCrocodile;
+	delete bee;
+	delete littleFrog;
 	delete[] bases;
+	if (crocodiles_amount > 0) delete[] crocodiles;
+	//if (turtles_amount > 0) delete[] turtles;
+	if (woods_amount > 0) delete[] woods;
+	if (cars_amount > 0) delete[] cars;
 
 	woods_amount = 0;
 	cars_amount = 0;
@@ -265,33 +245,39 @@ void Scene::resetScene()
 	crocodiles_amount = 0;
 }
 
-void Scene::drawScene(Draw* draw, int fps, bool paused)
+void Scene::drawScene(Draw* draw, double delta, bool paused)
 {
 	for (int i = 0; i < cars_amount; i++)
 	{
-		if(!paused)
-			cars[i]->move(fps);
+		if (!paused) {
+			cars[i]->move(delta);
+			cars[i]->animate();
+		}
 		cars[i]->show(draw);
 	}
 
 	for (int i = 0; i < woods_amount; i++)
 	{
 		if(!paused)
-			woods[i]->move(fps);
+			woods[i]->move(delta);
 		woods[i]->show(draw);
 	}
 
 	for (int i = 0; i < turtles_amount; i++)
 	{
-		if (!paused)
-			turtles[i]->move(fps);
+		if (!paused) {
+			turtles[i]->move(delta);
+			turtles[i]->animate();
+		}
 		turtles[i]->show(draw);
 	}
 
 	for (int i = 0; i < crocodiles_amount; i++)
 	{
-		if (!paused)
-			crocodiles[i]->move(fps);
+		if (!paused) {
+			crocodiles[i]->move(delta);
+			crocodiles[i]->animate();
+		}
 		crocodiles[i]->show(draw);
 	}
 
@@ -398,22 +384,15 @@ bool Scene::detectWaterCollision(int frogX, int frogY, int frogWidth, int frogHe
 
 void Scene::showLives(Draw* draw, Frog* frog)
 {
-	SDL_Rect SrcR;
-	SrcR.y = 0;
-	SrcR.x = 83;
-	SrcR.w = 40;
-	SrcR.h = 33;
+	SDL_Rect SrcR = {83,0,40,33};
 	for (int i = 0; i < frog->lives; i++)
-	{
-		draw->drawPartOfTexture(draw->renderer, frog->frogTexture, HEARTS_X + (SrcR.w+5)*i, HEARTS_Y, SrcR, 0, SDL_FLIP_NONE);
-	}
+		draw->drawPartOfTexture(draw->renderer, frog->texture, HEARTS_X + (SrcR.w+5)*i, HEARTS_Y, SrcR, 0, SDL_FLIP_NONE);
 }
 
 void Scene::showPaused(Draw* draw)
 {
 	char text[128];
 	sprintf(text, "PAUSED [p]");
-
 	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h/2, text, draw->charset2, 32);
 }
 
@@ -436,13 +415,18 @@ void Scene::endGameAsk(Draw* draw)
 }
 
 
-void Scene::showWin(Draw* draw, int scores, char name[])
+void Scene::showEnterScores(Draw* draw, int scores, char name[], bool won)
 {
 	draw->DrawFullScreenTexture();
 	 
 	char text[128];
-	sprintf(text, "You won!");
+	if (won)
+		sprintf(text, "You won!");
+	else
+		sprintf(text, "GAME OVER");
+
 	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 - 100, text, draw->charset2, 32);
+
 	sprintf(text, "Score: %i", scores);
 	draw->DrawString(draw->screen->w / 2 - strlen(text) * 32 / 2, draw->screen->h / 2 - 48, text, draw->charset2, 32);
 	sprintf(text, "Enter your name: ");
@@ -524,8 +508,10 @@ void Scene::showBonus(Draw* draw,int x, int y, int bonus)
 	char text[4];
 	if(bonus == 200)
 		sprintf(text, "200");
-	if (bonus == 400)
+	else if (bonus == 400)
 		sprintf(text, "400");
+	else
+		return;
 	draw->DrawString(x, y, text, draw->charset2, 32);
 
 }
@@ -537,8 +523,13 @@ Scene::~Scene()
 	SDL_DestroyTexture(baseTexture);
 	SDL_DestroyTexture(woodTexture);
 	SDL_DestroyTexture(turtleTexture);
-	SDL_FreeSurface(timeBar);
+	SDL_DestroyTexture(littleFrogTexture);
+	SDL_DestroyTexture(frogTexture);
+	SDL_DestroyTexture(beeTexture);
+	SDL_DestroyTexture(baseCrocodileTexture);
+	SDL_DestroyTexture(crocodileTexture);
 	SDL_DestroyTexture(timeBarTexture);
+	SDL_FreeSurface(timeBar);
 
 	resetScene();
 }

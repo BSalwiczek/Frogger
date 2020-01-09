@@ -8,34 +8,17 @@
 
 class Game
 {
-	int levels;
-	int current_level;
-	int scores;
-	int bonus;
-	int bonusX, bonusY;
+	int levels, current_level, scores, bonus, bonusX, bonusY;
 public:
 	char name[255];
-	short nameCurrentIndex;
-	short bases;
-	short menuOption;
+	short nameCurrentIndex, bases, menuOption;
 
-	bool paused;
-	bool over;
-	bool error;
-	bool win;
-	bool endGameAsk;
-	bool getName;
-	bool menu;
-	bool highscores;
-	bool savedToFile;
-	bool showBonus;
+	bool paused, over, error, win, endGameAsk, getName, menu, highscores, savedToFile, showBonus;
+	double fps,delta, worldTime, bonusTime, beeTime, divingTime, baseCrocodileTime, startedTime, endedTime;
 
 	char names[10][255];
 	int highestScores[10];
 	short highestCount;
-
-	double fps, worldTime, bonusTime, beeTime, divingTime, baseCrocodileTime;
-	double startedTime, endedTime;
 
 	Draw* draw;
 	Frog* frog;
@@ -47,11 +30,11 @@ public:
 	void showAll();
 	void handleFrogDeath();
 	void handleBonusesAndBases();
-	void writeName(char *input);
+	void writeName(const char *input);
 	void backspaceName();
 	void saveScore();
 	void setExternalVelocity(Frog* frog);
-	int getLevelsCount();
 
+	int getLevelsCount();
 	bool isEmpty(FILE* file);
 };

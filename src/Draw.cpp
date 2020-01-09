@@ -25,67 +25,37 @@ Draw::Draw(SDL_Renderer* renderer)
 		error = true;
 	}
 	else {
-		this->background = SDL_CreateTextureFromSurface(renderer,background_s);
+		background = SDL_CreateTextureFromSurface(renderer,background_s);
 	}
 	this->renderer = renderer;
 
-	screen = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32,
-		0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+	screen = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32,0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 
-	scrtex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-		SDL_TEXTUREACCESS_STREAMING,
-		SCREEN_WIDTH, SCREEN_HEIGHT);
+	scrtex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STREAMING,SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	black = SDL_MapRGB(screen->format, 0x00, 0x00, 0x00);
 	green = SDL_MapRGB(screen->format, 0x00, 0xFF, 0x00);
 	red = SDL_MapRGB(screen->format, 0xFF, 0x00, 0x00);
-	//int niebieski = SDL_MapRGB(screen->format, 0x11, 0x11, 0xCC);
 	//SDL_SetColorKey(charset, true, 0x000000);
 }
 
 Draw::~Draw()
 {
-	//SDL_FreeSurface(charset);
+	SDL_DestroyTexture(charset);
+	SDL_DestroyTexture(charset2);
+	SDL_DestroyTexture(background);
+	SDL_DestroyTexture(scrtex);
+	SDL_FreeSurface(screen);
 	//SDL_FreeSurface(background);
-}
-
-bool Draw::partOfSurface(SDL_Surface* Surf_Dest, SDL_Surface* Surf_Src, int X, int Y, int X2, int Y2, int W, int H) {
-	if (Surf_Dest == NULL || Surf_Src == NULL) {
-		return false;
-	}
-
-	SDL_Rect DestR;
-
-	DestR.x = X;
-	DestR.y = Y;
-
-	SDL_Rect SrcR;
-
-	SrcR.x = X2;
-	SrcR.y = Y2;
-	SrcR.w = W;
-	SrcR.h = H;
-
-	SDL_BlitSurface(Surf_Src, &SrcR, Surf_Dest, &DestR);
-
-	return true;
 }
 
 bool Draw::drawPartOfTexture(SDL_Renderer* renderer, SDL_Texture* texture, int X, int Y, SDL_Rect SrcR, double angle, SDL_RendererFlip flip) {
 	if (renderer == NULL || texture == NULL) {
 		return false;
 	}
-	
-	SDL_Rect DestR;
-	DestR.x = X;
-	DestR.y = Y;
-	DestR.w = SrcR.w;
-	DestR.h = SrcR.h;
-	
+	SDL_Rect DestR = { X,Y,SrcR.w, SrcR.h };
 	SDL_Point center = { SrcR.w/2, SrcR.h/2 };
-	
 	SDL_RenderCopyEx(renderer, texture, &SrcR, &DestR, angle, &center, flip);
-
 	return true;
 }
 

@@ -1,63 +1,25 @@
 #include "Wood.h"
 
-
-Wood::Wood(SDL_Texture* texture, int posX, int posY, int size, int velocity)
+Wood::Wood(SDL_Texture* texture, int posX, int posY, int size, int velocity) : Entity(texture, posX, posY, velocity)
 {
-	this->texture = texture;
-	this->posX = posX;
-	this->posY = posY;
-
 	this->size = size;
-	this->height = 34;
-	this->velocity = velocity;
-	this->direction = right;
+	height = WOOD_HEIGHT;
+	direction = right;
 }
 
 void Wood::show(Draw* draw)
 {
-	SDL_Rect beginningRect;
-	beginningRect.x = 0;
-	beginningRect.y = 0;
-	beginningRect.w = WOOD_BEGIN_WIDTH;
-	beginningRect.h = this->height;
+	SDL_Rect beginningRect = {0,0,WOOD_BEGIN_WIDTH,height};
+	draw->drawPartOfTexture(draw->renderer, texture, (int)posX, (int)posY, beginningRect, 0, SDL_FLIP_NONE);
 
-	draw->drawPartOfTexture(draw->renderer, this->texture, this->posX, this->posY, beginningRect, 0, SDL_FLIP_NONE);
-
-
+	SDL_Rect middleRect = { WOOD_BEGIN_WIDTH + 1,0,WOOD_MIDDLE_WIDTH,height };
 	for (int i = 0; i < size; i++)
 	{
-		SDL_Rect middleRect;
-		middleRect.x = WOOD_BEGIN_WIDTH + 1;
-		middleRect.y = 0;
-		middleRect.w = WOOD_MIDDLE_WIDTH;
-		middleRect.h = this->height;
-		draw->drawPartOfTexture(draw->renderer, this->texture, this->posX + WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH*i, this->posY, middleRect, 0, SDL_FLIP_NONE);
+		draw->drawPartOfTexture(draw->renderer, texture, (int)(posX + WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH*i), (int)posY, middleRect, 0, SDL_FLIP_NONE);
 	}
 
+	SDL_Rect endRect = { WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH + 2, 0, WOOD_END_WIDTH, height};
+	draw->drawPartOfTexture(draw->renderer, texture, (int)(posX + WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH*size), (int)posY, endRect, 0, SDL_FLIP_NONE);
 
-	SDL_Rect endRect;
-	endRect.x = WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH + 2;
-	endRect.y = 0;
-	endRect.w = WOOD_END_WIDTH;
-	endRect.h = this->height;
-	draw->drawPartOfTexture(draw->renderer, this->texture, this->posX + WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH*size, this->posY, endRect, 0, SDL_FLIP_NONE);
-
-	this->width = WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH * size + WOOD_END_WIDTH;
-
+	width = WOOD_BEGIN_WIDTH + WOOD_MIDDLE_WIDTH * size + WOOD_END_WIDTH;
 }
-
-//void Wood::move(int fps)
-//{
-//	if (fps > 0)
-//		this->step = velocity * (1 / (double)fps) + this->step;
-//	if (this->step >= 1)
-//	{
-//			this->posX += 1;
-//		if (this->posX > SCREEN_WIDTH * 2 - this->width)
-//			this->posX = -this->width;
-//		if (this->posX < -SCREEN_WIDTH + this->width)
-//			this->posX = SCREEN_WIDTH + this->width;
-//
-//		this->step = 0;
-//	}
-//}

@@ -1,14 +1,17 @@
 #pragma once
 #include "Frog.h"
 #include "Entity.h"
+#include <stdlib.h>
 
 class LittleFrog: public Frog
 {
+	int woodWidth, woodX;
 public:
-	LittleFrog(SDL_Texture* texture, int posX, int posY);
-	bool collision(int frogX, int frogY, int frogWidth, int frogHeight);
+	bool follow;
+
+	LittleFrog(SDL_Texture* texture, int posX, int woodWidth, int posY);
 
 	void checkIfTooFar();
-	bool follow;
+	void moveAround(double fps);
 };
 

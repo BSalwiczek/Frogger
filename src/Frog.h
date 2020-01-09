@@ -6,6 +6,8 @@
 #define START_X SCREEN_WIDTH / 2 - 20
 #define START_Y SCREEN_HEIGHT - 139
 #define MAX_LIVES 5
+#define FROG_WIDTH 41
+#define FROG_HEIGHT 42
 
 typedef enum {
 	a_stand,
@@ -15,35 +17,23 @@ typedef enum {
 
 class Frog: public Entity
 {
+public:
 	frog_animation animation_state;
 
-	int last_time_jumped;
+	bool jumping, error, moveable, first_move;
 
-	double step, current_steps;
-
-public:
-	SDL_Texture* frogTexture;
-	bool jumping;
-	bool error;
-	bool moveable;
-	bool first_move;
-
-	int lowestY;
-
-	int jump_distance;
-	
-	int jump_velocity;
-	int external_velocity;
+	double current_steps;
+	int jump_distance, external_velocity, last_time_jumped;
 
 	direction_t velocity_direction, external_velocity_direction;
 
-	int posX, posY, width, height;
+	int lowestY;
 	short lives;
 
 	Frog(SDL_Texture* texture);
 	void showFrog(Draw* draw);
 	void setAnimation();
-	void move(int fps);
+	void move(double delta);
 	void jump(SDL_Keycode key);
 	void die();
 	void goToStart();

@@ -1,21 +1,10 @@
 #include "Game.h"
 
-Game::Game(SDL_Renderer* renderer)
+Game::Game(SDL_Renderer* renderer): 
+	worldTime(0), bonusTime(0), startedTime(0), endedTime(0),fps(0),bases(0),bonusX(0),bonusY(0), bonus(0), beeTime(0), divingTime(0), baseCrocodileTime(0), delta(0),
+	error(false), showBonus(false), menu(true), paused(false), over(false), endGameAsk(false), getName(false), savedToFile(false), win(false), highscores(false)
 {
-	worldTime = 0;
-	bonusTime = 0;
-	startedTime = 0;
-	endedTime = 0;
-	fps = 0;
-	bases = 0;
-	bonusX = 0;
-	bonusY = 0;
-	bonus = 0;
-	beeTime = 0;
-	divingTime = 0;
-	baseCrocodileTime = 0;
 	draw = new Draw(renderer);
-	error = false;
 	if (draw->error == true)
 		error = true;
 
@@ -27,22 +16,10 @@ Game::Game(SDL_Renderer* renderer)
 	if (frog->error == true)
 		error = true;
 
-
 	levels = getLevelsCount();
-	current_level = 2;
-	printf("%i \n", levels);
+	current_level = 1;
 
 	scene->createScene(current_level);
-
-	showBonus = false;
-	menu = true;
-	paused = false;
-	over = false;
-	endGameAsk = false;
-	getName = false;
-	savedToFile = false;
-	win = false;
-	highscores = false;
 
 	scores = 300;
 	nameCurrentIndex = 0;
@@ -90,7 +67,7 @@ Game::~Game()
 	delete scene;
 }
 
-void Game::writeName(char* input)
+void Game::writeName(const char* input)
 {
 	if (nameCurrentIndex < 253)
 	{
@@ -132,7 +109,7 @@ void Game::play()
 
 		if (worldTime - divingTime > 1)
 		{
-			if (rand() % 100 > 80)
+			if (rand() % 100 > 90-5*current_level && current_level > 1)
 			{
 				scene->randomTurtlesDive();
 				divingTime = worldTime;
@@ -140,7 +117,7 @@ void Game::play()
 			
 		}
 
-		if (frog->lowestY > frog->posY & frog->jumping == false)
+		if (frog->lowestY > frog->posY && frog->jumping == false)
 		{
 			scores += 10;
 			frog->lowestY = frog->posY;
@@ -148,12 +125,12 @@ void Game::play()
 
 		if (bases == BASES_COUNT)
 		{
-			if (current_level > levels)
+			if (current_level >= levels)
 			{
 				getName = true;
 				win = true;
 				frog->moveable = false;
-				scene->showWin(draw, scores, name);
+				scene->showEnterScores(draw, scores, name, true);
 			}
 			else {
 				bases = 0;
@@ -167,8 +144,7 @@ void Game::play()
 		if (frog->first_move == true)
 			startedTime = worldTime;
 
-		frog->move(fps);
-		
+		frog->move(delta);
 		
 	}else if(!over){
 		scene->showPaused(draw);
@@ -179,8 +155,22 @@ void Game::play()
 
 	if (frog->lives == 0)
 	{
-		over = true;
-		scene->showOver(draw);
+		bool beatScores = false;
+		for (int i = 0; i < 10; i++)
+		{
+			if (scores > highestScores[i])
+				beatScores = true;
+		}
+		if (beatScores)
+		{
+			getName = true;
+			frog->moveable = false;
+			scene->showEnterScores(draw, scores, name,false);
+		}
+		else {
+			over = true;
+			scene->showOver(draw);
+		}
 	}
 }
 
@@ -188,23 +178,17 @@ void Game::handleFrogDeath()
 {
 	endedTime = worldTime;
 	frog->die();
-	if (scene->littleFrog != NULL)
-		scene->littleFrog = NULL;
+	scene->littleFrog = NULL;
 }
-
 
 void Game::showAll()
 {
 	scene->showTimeBar(draw, (scene->time_for_level - (worldTime - startedTime)) / scene->time_for_level);
 
-	SDL_Rect rect;
-	rect.x = 0;
-	rect.y = 0;
-	rect.w = SCREEN_WIDTH;
-	rect.h = SCREEN_HEIGHT - 200;
+	SDL_Rect rect = {0,0,SCREEN_WIDTH,SCREEN_HEIGHT-200};
 
 	draw->drawPartOfTexture(draw->renderer, draw->background, 0, 100, rect, 0, SDL_FLIP_NONE);
-	scene->drawScene(draw, fps, paused);
+	scene->drawScene(draw, delta, paused);
 	scene->showScores(draw, scores);
 	scene->showLives(draw, frog);
 	frog->showFrog(draw);
@@ -220,7 +204,10 @@ void Game::showAll()
 void Game::handleBonusesAndBases()
 {
 	int base = scene->detectBaseCollisions(frog->posX, frog->posY, frog->width, frog->height);
-	if (base != -1)
+
+	if (base == -2) //wczesniej zajeta
+		handleFrogDeath();
+	else if (base != -1)
 	{
 		if (scene->baseCrocodile != NULL && scene->baseCrocodile->base == base && scene->baseCrocodile->animation_state == attact) {
 			handleFrogDeath();
@@ -254,8 +241,6 @@ void Game::handleBonusesAndBases()
 		}
 		
 	}
-	if (base == -2) //wczesniej zajeta
-		handleFrogDeath();
 
 	if (worldTime - endedTime < 5 && showBonus)
 		scene->showBonus(draw, bonusX, bonusY, bonus);
@@ -272,7 +257,8 @@ void Game::handleBonusesAndBases()
 			scene->littleFrog->posY = frog->posY + 7;
 		}
 
-		scene->littleFrog->move(fps);
+		scene->littleFrog->move(delta);
+		scene->littleFrog->moveAround(fps);
 		scene->littleFrog->checkIfTooFar();
 	}
 
@@ -281,35 +267,26 @@ void Game::handleBonusesAndBases()
 		if (rand() % 100 < scene->bee_chance)
 		{
 			if (scene->createBee())
-			{
 				beeTime = worldTime;
-			};
 		}
 		if (rand() % 100 < scene->little_frog_chance)
 		{
 			scene->createLittleFrog();
 		}
-		if (rand() % 100 < scene->base_crocodile_chance)
+		if (rand() % 100 < scene->base_crocodile_chance &&  current_level > 1)
 		{
 			if (scene->createBaseCrocodile())
-			{
 				baseCrocodileTime = worldTime;
-			}
 		}
 		bonusTime = worldTime;
 	}
 	
 	if (worldTime - baseCrocodileTime > 5)
-	{
 		scene->baseCrocodile = NULL;
-	}
 
 	if (worldTime - beeTime > 5)
-	{
 		scene->bee = NULL;
-	}
 }
-
 
 void Game::setExternalVelocity(Frog* frog)
 {
@@ -334,6 +311,7 @@ void Game::setExternalVelocity(Frog* frog)
 		frog->external_velocity = velocity;
 		frog->external_velocity_direction = right;
 	}
+
 }
 
 void Game::saveScore()
@@ -413,11 +391,8 @@ void Game::saveScore()
 bool Game::isEmpty(FILE* file) {
 	long savedOffset = ftell(file);
 	fseek(file, 0, SEEK_END);
-
-	if (ftell(file) == 0) {
+	if (ftell(file) == 0)
 		return true;
-	}
-
 	fseek(file, savedOffset, SEEK_SET);
 	return false;
 }

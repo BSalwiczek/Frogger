@@ -1,40 +1,27 @@
 #include "Entity.h"
 
-
-Entity::Entity()
+Entity::Entity(SDL_Texture* texture, double posX, double posY, int velocity = 0)
 {
+	this->texture = texture;
+	this->posX = posX;
+	this->posY = posY;
+	this->velocity = velocity;
 	direction = up;
-	velocity = 1;
-	step = 0;
-
+	last_animation_time = SDL_GetTicks();
 }
 
 bool Entity::collision(int frogX, int frogY, int frogWidth, int frogHeight)
 {
-	int centerX = this->posX + this->width / 2;
-	int centerY = this->posY + this->height / 2;
-	int frogCenterX = frogX + frogWidth / 2;
-	int frogCenterY = frogY + frogHeight / 2;
-
-	if (beetwen(centerY + this->height / 2, frogCenterY + frogHeight / 2, frogCenterY - frogHeight / 2))
+	if (beetwen(posY + height, frogY + frogHeight, frogY) || beetwen(posY, frogY + frogHeight, frogY))
 	{
-		if (beetwen(centerX  + this->width / 2, frogCenterX + frogWidth / 2, frogCenterX - frogWidth / 2))
+		if (beetwen(posX + width, frogX + frogWidth, frogY))
 			return true;
-		if (beetwen(centerX - this->width / 2, frogCenterX + frogWidth / 2, frogCenterX - frogWidth / 2))
+		if (beetwen(posX, frogX + frogWidth, frogX))
 			return true;
 	}
 
-	if (beetwen(centerY - this->height / 2, frogCenterY + frogHeight / 2, frogCenterY - frogHeight / 2))
-	{
-		if (beetwen(centerX + this->width / 2, frogCenterX + frogWidth / 2, frogCenterX - frogWidth / 2))
-			return true;
-		if (beetwen(centerX - this->width / 2, frogCenterX + frogWidth / 2, frogCenterX - frogWidth / 2))
-			return true;
-	}
-
-	if (abs(centerX - frogCenterX) <= this->width / 2 + frogWidth /2 && abs(centerY - frogCenterY) <= this->height / 2 + frogHeight /2 )
+	if (fabsf(posX + width / 2 - frogX - frogWidth / 2) <= width / 2 + frogWidth / 2 && fabsf(posY + height / 2 - frogY - frogHeight / 2) <= height / 2 + frogHeight / 2)
 		return true;
-
 	return false;
 }
 
@@ -43,9 +30,9 @@ bool Entity::centerCollision(int frogX, int frogY, int frogWidth, int frogHeight
 	int frogCenterX = frogX + frogWidth / 2;
 	int frogCenterY = frogY + frogHeight / 2;
 
-	if (this->posY <= frogCenterY && this->posY + this->height >= frogCenterY)
+	if (posY <= frogCenterY && posY + height >= frogCenterY)
 	{
-		if (this->posX <= frogCenterX && this->posX + this->width >= frogCenterX)
+		if (posX <= frogCenterX && posX + width >= frogCenterX)
 		{
 			return true;
 		}
@@ -61,18 +48,14 @@ bool Entity::beetwen(int x, int up, int down)
 	return false;
 }
 
-void Entity::move(int fps)
+void Entity::move(double delta)
 {
-	if (fps > 0)
-		this->step = velocity * (1 / (double)fps) + this->step;
-	if (this->step >= 1)
-	{
-		this->posX += 1;
-		if (this->posX > SCREEN_WIDTH * 2 - this->width)
-			this->posX = -this->width;
-		if (this->posX < -SCREEN_WIDTH + this->width)
-			this->posX = SCREEN_WIDTH + this->width;
-
-		this->step = 0;
-	}
+	if (direction == left)
+		posX -= velocity * delta;
+	if (direction == right)
+		posX += velocity * delta;
+	if (posX > SCREEN_WIDTH * 2 - width)
+		posX = -this->width;
+	if (posX < -SCREEN_WIDTH + width)
+		posX = SCREEN_WIDTH + width;
 }

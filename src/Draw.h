@@ -27,7 +27,6 @@ public:
 
 
 	int black, green, red;
-
 	bool error;
 
 	Draw(SDL_Renderer* renderer);
@@ -38,6 +37,5 @@ public:
 	void DrawLine(SDL_Surface* screen, int x, int y, int l, int dx, int dy, Uint32 color);
 	void DrawRectangle(SDL_Surface* screen, int x, int y, int l, int k, Uint32 outlineColor, Uint32 fillColor);
 	void DrawFullScreenTexture();
-	bool partOfSurface(SDL_Surface* Surf_Dest, SDL_Surface* Surf_Src, int X, int Y, int X2, int Y2, int W, int H);
 	bool drawPartOfTexture(SDL_Renderer* renderer, SDL_Texture* texture, int X, int Y, SDL_Rect SrcR, double angle, SDL_RendererFlip flip);
 };

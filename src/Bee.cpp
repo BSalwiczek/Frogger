@@ -1,6 +1,6 @@
 #include "Bee.h"
 
-Bee::Bee(SDL_Texture* texture, short base)
+Bee::Bee(SDL_Texture* texture, short base) : Entity(texture, posX, posY, 0)
 {
 	switch (base)
 	{
@@ -21,16 +21,11 @@ Bee::Bee(SDL_Texture* texture, short base)
 		break;
 	}
 	posY = 138;
-	this->texture = texture;
 	this->base = base;
 }
 
 void Bee::show(Draw* draw)
 {
-	SDL_Rect rect;
-	rect.x = 0;
-	rect.y = 0;
-	rect.w = 49;
-	rect.h = 39;
-	draw->drawPartOfTexture(draw->renderer, texture, posX, posY, rect, 0, SDL_FLIP_NONE);
+	SDL_Rect rect = {0,0,49,39};
+	draw->drawPartOfTexture(draw->renderer, texture, (int)posX, (int)posY, rect, 0, SDL_FLIP_NONE);
 }

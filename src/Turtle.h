@@ -18,15 +18,11 @@ typedef enum {
 class Turtle: public Entity
 {
 	int size;
-	double step;
 public:
 	turtle_animation animation_state;
 	bool diving;
-	int velocity;
-	SDL_Texture* texture;
 	Turtle(SDL_Texture* texture, int posX, int posY, int size, int velocity);
 	void show(Draw* draw);
-	void move(int fps);
-	void setAnimation();
+	void animate();
 };
 

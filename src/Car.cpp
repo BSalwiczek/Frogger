@@ -1,75 +1,46 @@
 #include "Car.h"
 
-
-Car::Car(SDL_Texture* carsTexture, int car_type, int posX, int posY, int velocity, direction_t direction)
+Car::Car(SDL_Texture* texture, int car_type, int posX, int posY, int velocity, direction_t direction) : Entity(texture, posX, posY, velocity)
 {
-	error = false;
-	this->carsTexture = carsTexture;
-	this->posX = posX;
-	this->posY = posY;
-	this->carRect.y = 0;
-	this->step = 0;
+	carRect.y = 0;
 	switch (car_type)
 	{
 	case 0:
-		this->carRect.x = 0;
-		this->carRect.w = 26;
-		this->carRect.h = 34;
+		carRect.x = 0;
+		carRect.w = 26;
+		carRect.h = 34;
 		break;
 	case 1:
-		this->carRect.x = 52;
-		this->carRect.w = 50;
-		this->carRect.h = 28;
+		carRect.x = 52;
+		carRect.w = 50;
+		carRect.h = 28;
 		break;
 	case 2:
-		this->carRect.x = 102;
-		this->carRect.w = 27;
-		this->carRect.h = 28;
+		carRect.x = 102;
+		carRect.w = 27;
+		carRect.h = 28;
 		break;
 	case 3:
-		this->carRect.x = 129;
-		this->carRect.w = 30;
-		this->carRect.h = 40;
+		carRect.x = 129;
+		carRect.w = 30;
+		carRect.h = 40;
 		break;
 	default:
-		this->carRect.x = 159;
-		this->carRect.w = 29;
-		this->carRect.h = 40;
+		carRect.x = 159;
+		carRect.w = 29;
+		carRect.h = 40;
 		break;
 	}
 
-	this->width = carRect.w;
-	this->height = carRect.h;
+	width = carRect.w;
+	height = carRect.h;
 
 	this->direction = direction;
-	this->velocity = velocity;
-	last_animation_time = SDL_GetTicks();
 }
 
 void Car::show(Draw* draw)
 {
-	draw->drawPartOfTexture(draw->renderer, this->carsTexture, this->posX, this->posY, this->carRect, 0, SDL_FLIP_NONE);
-}
-
-void Car::move(int fps)
-{
-	animate();
-	if(fps>0)
-		this->step = velocity * (1/(double)fps) + this->step;
-	if (this->step >= 1)
-	{
-		if (this->direction == left)
-			this->posX -= 1;
-		if (this->direction == right)
-			this->posX += 1;
-		if (this->posX > SCREEN_WIDTH * 2 - this->carRect.w)
-			this->posX = -this->carRect.w;
-		if (this->posX < -SCREEN_WIDTH + this->carRect.w)
-			this->posX = SCREEN_WIDTH + this->carRect.w;
-
-		this->step = 0;
-	}
-
+	draw->drawPartOfTexture(draw->renderer, texture, (int)posX, (int)posY, carRect, 0, SDL_FLIP_NONE);
 }
 
 void Car::animate()

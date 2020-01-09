@@ -1,9 +1,7 @@
 #include "BaseCrocodile.h"
 
-
-BaseCrocodile::BaseCrocodile(SDL_Texture* texture, short base)
+BaseCrocodile::BaseCrocodile(SDL_Texture* texture, short base) : Entity(texture, posX, posY, 0)
 {
-	this->texture = texture;
 	this->base = base;
 	switch (base)
 	{
@@ -31,24 +29,18 @@ BaseCrocodile::BaseCrocodile(SDL_Texture* texture, short base)
 void BaseCrocodile::show(Draw* draw)
 {
 	animate();
-	SDL_Rect rect;
-	rect.x = 0;
-	rect.y = 0;
-	rect.w = 18;
+	SDL_Rect rect = {0,0,BASE_CROCODILE_WIDTH,BASE_CROCODILE_HEIGHT };
 	if (animation_state == attact) {
-		rect.x = 18;
-		rect.w = 39;
-
+		rect.x = BASE_CROCODILE_WIDTH;
+		rect.w = BASE_CROCODILE_HEIGHT - 3;
 	}
-	rect.h = 42;
-	draw->drawPartOfTexture(draw->renderer, texture, posX, posY, rect, 0, SDL_FLIP_NONE);
+	draw->drawPartOfTexture(draw->renderer, texture, (int)posX, (int)posY, rect, 0, SDL_FLIP_NONE);
 }
 
 void BaseCrocodile::animate()
 {
 	if (SDL_GetTicks() - last_animation_time > 1000)
 	{
-
 		switch (animation_state)
 		{
 		case attact_start:
@@ -57,10 +49,7 @@ void BaseCrocodile::animate()
 		case attact:
 			animation_state = attact_end;
 			break;
-		case attact_end:
-			break;
 		}
-
 		last_animation_time = SDL_GetTicks();
 	}
 }

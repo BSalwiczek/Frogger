@@ -15,3 +15,5 @@ Next bloks are setting position of object. Firstly goes line number with Y coord
 * logs and turtles – number of repetitions of middle part,
 * cars – direction of movement (1 - right, 0 - left),
 * crocodiles – nothing (just leave it random).
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
